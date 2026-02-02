@@ -1,0 +1,83 @@
+<?php
+session_start();
+require_once "../protect.php";
+?>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Información</title>
+    <link rel="icon" type="../image.png" href="../imagenes/loguito.png">
+    <link rel="stylesheet" href="../css/acg.estilos.css">
+    <style>
+        .header {
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-title-group">
+            <a href="menu_user.php">
+                <img src="../imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+            </a>
+            <a href="menu_user.php">
+                <h1>Consultar Información</h1>
+            </a>
+        </div>
+
+        <a href="menu_user.php" class="back-button">⬅️ Volver</a>
+    </header>
+
+    <main class="main-container">
+        <div class="menu-grid">
+
+            <a href="../list-maquina-user.php" class="menu-card">
+                <div class="icon">🏭</div>
+                <h3>Máquinas</h3>
+            </a>
+
+            <a href="../list-molde-user.php" class="menu-card">
+                <div class="icon">📦</div>
+                <h3>Moldes</h3>
+            </a>
+
+            <a href="../list-resina-user.php" class="menu-card">
+                <div class="icon">💧</div>
+                <h3>Resinas</h3>
+            </a>
+
+            <a href="../list-pieza-user.php" class="menu-card">
+                <div class="icon">🧩</div>
+                <h3>Piezas</h3>
+            </a>
+
+            <a href="../form-hojaResultado.php" class="menu-card">
+                <div class="icon">📊</div>
+                <h3>Hoja de Resultado</h3>
+            </a>
+
+            <a href="../form-hojaProceso.php" class="menu-card">
+                <div class="icon">📋</div>
+                <h3>Hoja de Proceso</h3>
+            </a>
+
+            <a href="proceso.php" class="menu-card disabled">
+                <div class="icon">⚙️</div>
+                <h3>Ingeniería de Proceso</h3>
+            </a>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>Método ACG</p>
+    </footer>
+
+</body>
+
+</html>

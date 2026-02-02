@@ -1,0 +1,177 @@
+-- Alterar la base de datos para que admita caracteres en español
+ALTER DATABASE u372417318_metodo_acg
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+use u372417318_metodo_acg;
+
+-- Roles para las sesiones en la plataforma, estos otorgan permisos y visibilidad de los datos
+CREATE TABLE roles (
+    ro_id INT PRIMARY KEY,
+    ro_nombre VARCHAR(20)
+);
+
+A cada perfil se le asigna una empresa, este se conecta a cada registro que tiene
+CREATE TABLE empresas (
+    em_id INT AUTO_INCREMENT PRIMARY KEY,
+    em_nombre VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE usuarios (
+    us_id INT AUTO_INCREMENT PRIMARY KEY,
+    us_nombre VARCHAR(255) NOT NULL,
+    us_correo VARCHAR(255) NOT NULL UNIQUE,
+    us_password VARCHAR(255) NOT NULL,
+    us_rol INT DEFAULT 0,
+    FOREIGN KEY (us_rol) REFERENCES roles(ro_id),
+    us_empresa INT DEFAULT NULL,
+    FOREIGN KEY (us_empresa) REFERENCES empresas(em_id)
+);
+
+CREATE TABLE maquinas (
+    ma_id INT AUTO_INCREMENT PRIMARY KEY,
+    ma_usuario INT NOT NULL,
+    FOREIGN KEY (ma_usuario) REFERENCES usuarios(us_id),
+    ma_empresa INT NOT NULL,
+    FOREIGN KEY (ma_empresa) REFERENCES empresas(em_id),
+    ma_fecha DATETIME NOT NULL,
+    ma_marca VARCHAR(255),
+    ma_modelo VARCHAR(255),
+    ma_fecha_fabr DATETIME,
+    ma_ubicacion VARCHAR(255),
+    ma_tipo DECIMAL(10,2),
+    ma_ancho DECIMAL(10,2),
+    ma_largo DECIMAL(10,2),
+    ma_alto DECIMAL(10,2),
+    ma_peso DECIMAL(10,2),
+    ma_vol_tanq_aceite DECIMAL(10,2),
+    ma_tonelaje DECIMAL(10,2),
+    ma_dist_barras DECIMAL(10,2),
+    ma_tam_platina DECIMAL(10,2),
+    ma_anillo_centr DECIMAL(10,2),
+    ma_alt_max_molde DECIMAL(10,2),
+    ma_apert_max DECIMAL(10,2),
+    ma_alt_min_molde DECIMAL(10,2),
+    ma_tipo_sujecion VARCHAR(255),
+    ma_molde_chico DECIMAL(10,2),
+    ma_botado_patron VARCHAR(255),
+    ma_botado_fuerza DECIMAL(10,2),
+    ma_botado_carrera DECIMAL(10,2),
+    ma_tam_unid_inyec DECIMAL(10,2),
+    ma_vol_inyec DECIMAL(10,2),
+    ma_diam_husillo DECIMAL(10,2),
+    ma_carga_max DECIMAL(10,2),
+    ma_ld VARCHAR(255),
+    ma_tipo_husillo VARCHAR(255),
+    ma_max_pres_inyec DECIMAL(10,2),
+    ma_max_contrapres DECIMAL(10,2),
+    ma_max_revol DECIMAL(10,2),
+    ma_max_vel_inyec DECIMAL(10,2),
+    ma_valv_shut_off VARCHAR(255),
+    ma_carga_vuelo VARCHAR(255),
+    ma_fuerza_apoyo DECIMAL(10,2),
+    ma_noyos INT,
+    ma_no_valv_aire INT,
+    ma_tipo_valv_aire VARCHAR(255),
+    ma_secador VARCHAR(255),
+    ma_termoreguladores INT,
+    ma_cargador VARCHAR(255),
+    ma_canal_caliente INT,
+    ma_robot VARCHAR(255),
+    ma_acumul_hidr VARCHAR(255),
+    ma_voltaje DECIMAL(10,2),
+    ma_calentamiento DECIMAL(10,2),
+    ma_tam_motor_1 DECIMAL(10,2),
+    ma_tam_motor_2 DECIMAL(10,2)
+);
+
+CREATE TABLE moldes (
+    mo_id INT AUTO_INCREMENT PRIMARY KEY,
+    mo_usuario INT NOT NULL,
+    FOREIGN KEY (mo_usuario) REFERENCES usuarios(us_id),
+    mo_empresa INT NOT NULL,
+    FOREIGN KEY (mo_empresa) REFERENCES empresas(em_id),    
+    mo_fecha DATETIME NOT NULL,
+    mo_no_pieza VARCHAR(255),
+    mo_numero VARCHAR(255),
+    mo_ancho DECIMAL(10,2),
+    mo_alto DECIMAL(10,2),
+    mo_largo DECIMAL(10,2),
+    mo_placas_voladas DECIMAL(10,2),
+    mo_anillo_centrador DECIMAL(10,2),
+    mo_no_circ_agua INT,
+    mo_peso DECIMAL(10,2),
+    mo_apert_min DECIMAL(10,2),
+    mo_abierto DECIMAL(10,2),
+    mo_tipo_colada VARCHAR(255),
+    mo_no_zonas INT,
+    mo_no_cavidades INT,
+    mo_peso_pieza DECIMAL(10,2),
+    mo_puert_cavidad INT,
+    mo_no_coladas INT,
+    mo_peso_colada DECIMAL(10,2),
+    mo_peso_disparo DECIMAL(10,2),
+    mo_noyos VARCHAR(255),
+    mo_entr_aire VARCHAR(255),
+    mo_thermoreguladores VARCHAR(255),
+    mo_valve_gates VARCHAR(255),
+    mo_tiempo_ciclo VARCHAR(255),
+    mo_cavidades_activas VARCHAR(255)
+);
+
+CREATE TABLE piezas (
+    pi_id INT AUTO_INCREMENT PRIMARY KEY,
+    pi_usuario INT NOT NULL,
+    FOREIGN KEY (pi_usuario) REFERENCES usuarios(us_id),
+    pi_empresa INT NOT NULL,
+    FOREIGN KEY (pi_empresa) REFERENCES empresas(em_id),
+    pi_fecha DATETIME NOT NULL,
+    pi_cod_prod VARCHAR(255),
+    pi_molde VARCHAR(255),
+    pi_descripcion VARCHAR(255),
+    pi_resina VARCHAR(255),
+    pi_espesor VARCHAR(255),
+    pi_area_proy VARCHAR(255),
+    pi_color VARCHAR(255),
+    pi_tipo_empaque VARCHAR(255),
+    pi_piezas VARCHAR(255),
+    pi_caja_no_pzs INT,
+    pi_caja_tamaño DECIMAL(10,2),
+    pi_bolsa1 VARCHAR(255),
+    pi_bolsa2 VARCHAR(255),
+    pi_tarima_no_cajas INT
+);
+
+CREATE TABLE resinas (
+    re_id INT AUTO_INCREMENT PRIMARY KEY,
+    re_usuario INT NOT NULL,
+    FOREIGN KEY (re_usuario) REFERENCES usuarios(us_id),
+    re_empresa INT NOT NULL,
+    FOREIGN KEY (re_empresa) REFERENCES empresas(em_id),
+    re_fecha DATETIME NOT NULL,
+    re_cod_int VARCHAR(255),
+    re_tipo_resina VARCHAR(255),
+    re_grado VARCHAR(255),
+    re_porc_reciclado DECIMAL(10,2),
+    re_temp_masa_max DECIMAL(10,2),
+    re_temp_masa_min DECIMAL(10,2),
+    re_temp_ref_max DECIMAL(10,2),
+    re_temp_ref_min DECIMAL(10,2),
+    re_sec_temp DECIMAL(10,2),
+    re_sec_tiempo DECIMAL(10,2),
+    re_densidad DECIMAL(10,2),
+    re_factor_correccion DECIMAL(10,2),
+    re_carga DECIMAL(10,2)
+);
+
+INSERT INTO roles VALUES
+(0, 'Inactivo'),
+(1, 'Administrador'),
+(2, 'Gerente'),
+(3, 'Empleado');
+
+INSERT INTO empresas (em_nombre) VALUES
+('Tim Hortons');
+
+INSERT INTO usuarios (us_nombre, us_correo, us_password, us_rol, us_empresa) VALUES
+('Bryan García', 'bg3-fow@hotmail.com', 'secreto1', 1, 1);
