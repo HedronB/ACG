@@ -1,12 +1,8 @@
 <?php
-session_start();
-require_once "protect.php";
-require_once "config/db.php";
+require_once __DIR__ . '/../app/bootstrap.php';
 
-if (!isset($_SESSION['id'], $_SESSION['rol'], $_SESSION['empresa'])) {
-    header("Location: log.php?error=Sesión no válida");
-    exit();
-}
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
 
 $usuarioId = $_SESSION['id'];
 $rol       = $_SESSION['rol'];

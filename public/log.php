@@ -1,6 +1,8 @@
 <?php
-require "config/db.php";
-session_start();
+require_once __DIR__ . '/../app/bootstrap.php';
+
+require_once BASE_PATH . '/app/config/db.php';
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 

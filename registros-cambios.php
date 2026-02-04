@@ -1,13 +1,10 @@
 <?php
-session_start();
-date_default_timezone_set('UTC');
+require_once __DIR__ . '/../app/bootstrap.php';
 
-if (!isset($_SESSION['id'])) {
-    header("Location: log.php?error=Debes_iniciar_sesion");
-    exit();
-}
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
 
-require_once "config/db.php";
+date_default_timezone_set('UTC'); 
 
 $usuarioId = $_SESSION['id'];
 $rol       = $_SESSION['rol'];

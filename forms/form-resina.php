@@ -1,6 +1,8 @@
 <?php
-session_start();
-require_once "protect.php";
+require_once __DIR__ . '/../app/bootstrap.php';
+
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -8,7 +10,7 @@ require_once "protect.php";
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Formulario de Pieza</title>
+  <title>Formulario de Resina</title>
   <link rel="icon" type="image/png" href="imagenes/loguito.png" />
   <link rel="stylesheet" href="css/acg.estilos.css" />
   <style>
@@ -25,7 +27,7 @@ require_once "protect.php";
         src="imagenes/logo.png"
         alt="Logo de la Empresa"
         class="header-logo" />
-      <h1>Formulario - Pieza</h1>
+      <h1>Formulario - Resina</h1>
     </div>
     <a href="registros.php" class="back-button">⬅️ Volver</a>
   </header>
@@ -33,86 +35,111 @@ require_once "protect.php";
   <div class="form-container">
     <div id="mensaje" class="mensaje"></div>
 
-    <form id="formPieza">
+    <form id="formResina">
       <div class="form-grid">
         <div class="form-group">
-          <label for="codigoProducto">Código de Producto *</label>
+          <label for="codigoInterno">Código Interno *</label>
           <input
             type="text"
-            id="codigoProducto"
-            name="codigoProducto"
+            id="codigoInterno"
+            name="codigoInterno"
             required />
         </div>
 
         <div class="form-group">
-          <label for="numeroMolde">Número de Molde *</label>
-          <input type="text" id="numeroMolde" name="numeroMolde" required />
+          <label for="tipoResina">Tipo de Resina *</label>
+          <input type="text" id="tipoResina" name="tipoResina" required />
         </div>
 
         <div class="form-group">
-          <label for="descripcion">Descripción</label>
-          <input type="text" id="descripcion" name="descripcion" />
+          <label for="grado">Grado</label>
+          <input type="text" id="grado" name="grado" />
         </div>
 
         <div class="form-group">
-          <label for="resina">Resina</label>
-          <input type="text" id="resina" name="resina" />
-        </div>
-
-        <div class="form-group">
-          <label for="espesorPieza">Espesor de Pieza</label>
+          <label for="porcentajeReciclado">% de Reciclado</label>
           <input
             type="number"
-            id="espesorPieza"
-            name="espesorPieza"
-            step="0.01" />
+            id="porcentajeReciclado"
+            name="porcentajeReciclado"
+            step="0.01"
+            min="0"
+            max="100" />
         </div>
 
         <div class="form-group">
-          <label for="areaProyectada">Área Proyectada</label>
+          <label for="tempMasaMax">Temp. Masa Máxima (°C)</label>
           <input
             type="number"
-            id="areaProyectada"
-            name="areaProyectada"
-            step="0.01" />
+            id="tempMasaMax"
+            name="tempMasaMax"
+            step="0.1" />
         </div>
 
         <div class="form-group">
-          <label for="color">Color</label>
-          <input type="text" id="color" name="color" />
-        </div>
-
-        <div class="form-group">
-          <label for="tipoEmpaque">Tipo de Empaque</label>
-          <input type="text" id="tipoEmpaque" name="tipoEmpaque" />
-        </div>
-
-        <div class="form-group">
-          <label for="piezas">Piezas</label>
-          <input type="number" id="piezas" name="piezas" step="1" />
-        </div>
-
-        <div class="form-group">
-          <label for="piezasPorCaja">Piezas por Caja</label>
+          <label for="tempMasaMin">Temp. Masa Mínima (°C)</label>
           <input
             type="number"
-            id="piezasPorCaja"
-            name="piezasPorCaja"
-            step="1" />
+            id="tempMasaMin"
+            name="tempMasaMin"
+            step="0.1" />
         </div>
 
         <div class="form-group">
-          <label for="tamanoCaja">Tamaño de la Caja</label>
-          <input type="text" id="tamanoCaja" name="tamanoCaja" />
-        </div>
-
-        <div class="form-group">
-          <label for="cajasPorTarima">Cajas por Tarima</label>
+          <label for="tempRefrigeracionMax">Temp. Refrigeración Máxima (°C)</label>
           <input
             type="number"
-            id="cajasPorTarima"
-            name="cajasPorTarima"
-            step="1" />
+            id="tempRefrigeracionMax"
+            name="tempRefrigeracionMax"
+            step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="tempRefrigeracionMin">Temp. Refrigeración Mínima (°C)</label>
+          <input
+            type="number"
+            id="tempRefrigeracionMin"
+            name="tempRefrigeracionMin"
+            step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="tempSecado">Temp. Secado (°C)</label>
+          <input type="number" id="tempSecado" name="tempSecado" step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="tiempoSecado">Tiempo Secado (Hrs)</label>
+          <input
+            type="number"
+            id="tiempoSecado"
+            name="tiempoSecado"
+            step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="densidad">Densidad (g/cm³)</label>
+          <input type="number" id="densidad" name="densidad" step="0.001" />
+        </div>
+
+        <div class="form-group">
+          <label for="factorCorreccion">Factor de Corrección</label>
+          <input
+            type="number"
+            id="factorCorreccion"
+            name="factorCorreccion"
+            step="0.001" />
+        </div>
+
+        <div class="form-group">
+          <label for="carga">Carga (%)</label>
+          <input
+            type="number"
+            id="carga"
+            name="carga"
+            step="0.01"
+            min="0"
+            max="100" />
         </div>
       </div>
 
@@ -137,10 +164,11 @@ require_once "protect.php";
         onclick="exportarAExcel()">
         📥 Exportar a Excel
       </button>
+
       <button
         type="button"
-        class="btn sqlbtn"
-        onclick="guardarTablaEnBD()">
+        class="btn btn-primary"
+        onclick="guardarTablaResinaEnBD()">
         💾 Guardar tabla en BD
       </button>
     </div>
@@ -148,18 +176,19 @@ require_once "protect.php";
       <table class="tabla-registros" id="tablaRegistros">
         <thead>
           <tr>
-            <th>Código Producto</th>
-            <th>Número Molde</th>
-            <th>Descripción</th>
-            <th>Resina</th>
-            <th>Espesor Pieza</th>
-            <th>Área Proyectada</th>
-            <th>Color</th>
-            <th>Tipo Empaque</th>
-            <th>Piezas</th>
-            <th>Piezas por Caja</th>
-            <th>Tamaño Caja</th>
-            <th>Cajas por Tarima</th>
+            <th>Código Interno</th>
+            <th>Tipo Resina</th>
+            <th>Grado</th>
+            <th>% Reciclado</th>
+            <th>Temp. Masa Máx</th>
+            <th>Temp. Masa Mín</th>
+            <th>Temp. Refrig. Máx</th>
+            <th>Temp. Refrig. Mín</th>
+            <th>Temp. Secado</th>
+            <th>Tiempo Secado</th>
+            <th>Densidad</th>
+            <th>Factor Corrección</th>
+            <th>Carga (%)</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -188,25 +217,29 @@ require_once "protect.php";
     }
 
     function limpiarFormulario() {
-      document.getElementById("formPieza").reset();
+      document.getElementById("formResina").reset();
       registroEditando = null;
       document.querySelector(".btn-primary").textContent = "Guardar Registro";
     }
 
     function obtenerDatosFormulario() {
       return {
-        codigoProducto: document.getElementById("codigoProducto").value,
-        numeroMolde: document.getElementById("numeroMolde").value,
-        descripcion: document.getElementById("descripcion").value,
-        resina: document.getElementById("resina").value,
-        espesorPieza: document.getElementById("espesorPieza").value,
-        areaProyectada: document.getElementById("areaProyectada").value,
-        color: document.getElementById("color").value,
-        tipoEmpaque: document.getElementById("tipoEmpaque").value,
-        piezas: document.getElementById("piezas").value,
-        piezasPorCaja: document.getElementById("piezasPorCaja").value,
-        tamanoCaja: document.getElementById("tamanoCaja").value,
-        cajasPorTarima: document.getElementById("cajasPorTarima").value,
+        codigoInterno: document.getElementById("codigoInterno").value,
+        tipoResina: document.getElementById("tipoResina").value,
+        grado: document.getElementById("grado").value,
+        porcentajeReciclado: document.getElementById("porcentajeReciclado")
+          .value,
+        tempMasaMax: document.getElementById("tempMasaMax").value,
+        tempMasaMin: document.getElementById("tempMasaMin").value,
+        tempRefrigeracionMax: document.getElementById("tempRefrigeracionMax")
+          .value,
+        tempRefrigeracionMin: document.getElementById("tempRefrigeracionMin")
+          .value,
+        tempSecado: document.getElementById("tempSecado").value,
+        tiempoSecado: document.getElementById("tiempoSecado").value,
+        densidad: document.getElementById("densidad").value,
+        factorCorreccion: document.getElementById("factorCorreccion").value,
+        carga: document.getElementById("carga").value,
       };
     }
 
@@ -220,14 +253,14 @@ require_once "protect.php";
     }
 
     document
-      .getElementById("formPieza")
+      .getElementById("formResina")
       .addEventListener("submit", function(e) {
         e.preventDefault();
 
         const datos = obtenerDatosFormulario();
 
-        if (!datos.codigoProducto || !datos.numeroMolde) {
-          mostrarMensaje("Código de producto y número de molde son obligatorios", "error");
+        if (!datos.codigoInterno || !datos.tipoResina) {
+          mostrarMensaje("Código interno y tipo de resina son obligatorios", "error");
           return;
         }
 
@@ -245,6 +278,7 @@ require_once "protect.php";
         limpiarFormulario();
       });
 
+
     function actualizarTabla() {
       const tbody = document.getElementById("cuerpoTabla");
       tbody.innerHTML = "";
@@ -252,24 +286,9 @@ require_once "protect.php";
       registros.forEach((registro, index) => {
         const fila = tbody.insertRow();
 
-        const ordenColumnas = [
-          "codigoProducto",
-          "numeroMolde",
-          "descripcion",
-          "resina",
-          "espesorPieza",
-          "areaProyectada",
-          "color",
-          "tipoEmpaque",
-          "piezas",
-          "piezasPorCaja",
-          "tamanoCaja",
-          "cajasPorTarima"
-        ];
-
-        ordenColumnas.forEach(campo => {
+        Object.values(registro).forEach((valor) => {
           const celda = fila.insertCell();
-          celda.textContent = registro[campo] ?? "";
+          celda.textContent = valor;
         });
 
         const celdaAcciones = fila.insertCell();
@@ -306,28 +325,29 @@ require_once "protect.php";
       }
 
       const headers = [
-        "Código Producto",
-        "Número Molde",
-        "Descripción",
-        "Resina",
-        "Espesor Pieza",
-        "Área Proyectada",
-        "Color",
-        "Tipo Empaque",
-        "Piezas",
-        "Piezas por Caja",
-        "Tamaño Caja",
-        "Cajas por Tarima",
+        "Código Interno",
+        "Tipo Resina",
+        "Grado",
+        "% Reciclado",
+        "Temp. Masa Máxima",
+        "Temp. Masa Mínima",
+        "Temp. Refrigeración Máxima",
+        "Temp. Refrigeración Mínima",
+        "Temp. Secado",
+        "Tiempo Secado",
+        "Densidad",
+        "Factor de Corrección",
+        "Carga (%)",
       ];
 
       const datos = registros.map((r) => Object.values(r));
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet([headers, ...datos]);
-      XLSX.utils.book_append_sheet(wb, ws, "Datos Pieza");
-      XLSX.writeFile(wb, "Datos_Pieza.xlsx");
+      XLSX.utils.book_append_sheet(wb, ws, "Datos Resina");
+      XLSX.writeFile(wb, "Datos_Resina.xlsx");
     }
 
-    function guardarTablaEnBD() {
+    function guardarTablaResinaEnBD() {
       if (registros.length === 0) {
         mostrarMensaje("No hay registros en la tabla para guardar", "error");
         return;
@@ -337,7 +357,7 @@ require_once "protect.php";
         return;
       }
 
-      fetch("guardar_pieza.php", {
+      fetch("guardar_resina.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -353,6 +373,7 @@ require_once "protect.php";
               `Se guardaron ${res.insertados} registros en la base de datos`,
               "exito"
             );
+
             registros = [];
             actualizarTabla();
           } else {

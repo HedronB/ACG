@@ -1,10 +1,10 @@
 <?php
-session_start();
+require_once __DIR__ . '/../app/bootstrap.php';
+
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
+
 date_default_timezone_set('UTC');
-
-if (!isset($_SESSION['id'])) { header("Location: log.php"); exit(); }
-
-require_once "config/db.php";
 
 $usuarioId = $_SESSION['id'];
 $empresaId = isset($_SESSION['empresa']) ? $_SESSION['empresa'] : 0;

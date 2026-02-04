@@ -1,7 +1,5 @@
 <?php
-if (!isset($_SESSION)) {
-    session_start();
-}
+require_once BASE_PATH . '/app/bootstrap.php';
 
 if (!isset($_SESSION['id'])) {
     header("Location: ../log.php?error=Debe iniciar sesión");

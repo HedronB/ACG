@@ -1,12 +1,8 @@
 <?php
-session_start();
+require_once __DIR__ . '/../app/bootstrap.php';
 
-if (!isset($_SESSION['id'])) {
-    header("Location: log.php?error=Debes_iniciar_sesion");
-    exit();
-}
-
-require_once "config/db.php";
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
 
 $usuarioId = $_SESSION['id'];
 $rol       = $_SESSION['rol'];
@@ -27,41 +23,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($input['action'] === 'update') {
         try {
-            $sql = "UPDATE resinas SET 
-                    re_cod_int = :cod_int,
-                    re_tipo_resina = :tipo,
-                    re_grado = :grado,
-                    re_porc_reciclado = :reciclado,
-                    re_temp_masa_max = :masa_max,
-                    re_temp_masa_min = :masa_min,
-                    re_temp_ref_max = :ref_max,
-                    re_temp_ref_min = :ref_min,
-                    re_sec_temp = :sec_temp,
-                    re_sec_tiempo = :sec_tiempo,
-                    re_densidad = :densidad,
-                    re_factor_correccion = :factor,
-                    re_carga = :carga
-                    WHERE re_id = :id";
+            $sql = "UPDATE piezas SET 
+                    pi_fecha = :fecha,
+                    pi_cod_prod = :cod_prod,
+                    pi_molde = :molde,
+                    pi_descripcion = :descripcion,
+                    pi_resina = :resina,
+                    pi_espesor = :espesor,
+                    pi_area_proy = :area,
+                    pi_color = :color,
+                    pi_tipo_empaque = :empaque,
+                    pi_piezas = :piezas,
+                    pi_caja_no_pzs = :caja_pzs,
+                    pi_caja_tamano = :caja_tam,
+                    pi_bolsa1 = :bolsa1,
+                    pi_bolsa2 = :bolsa2,
+                    pi_tarima_no_cajas = :tarima
+                    WHERE pi_id = :id";
             
-            if ($rol == 2) { $sql .= " AND re_empresa = :empresa"; }
+            if ($rol == 2) { $sql .= " AND pi_empresa = :empresa"; }
 
             $stmt = $conn->prepare($sql);
             
             $params = [
-                ':cod_int' => $input['re_cod_int'],
-                ':tipo' => $input['re_tipo_resina'],
-                ':grado' => $input['re_grado'],
-                ':reciclado' => $input['re_porc_reciclado'],
-                ':masa_max' => $input['re_temp_masa_max'],
-                ':masa_min' => $input['re_temp_masa_min'],
-                ':ref_max' => $input['re_temp_ref_max'],
-                ':ref_min' => $input['re_temp_ref_min'],
-                ':sec_temp' => $input['re_sec_temp'],
-                ':sec_tiempo' => $input['re_sec_tiempo'],
-                ':densidad' => $input['re_densidad'],
-                ':factor' => $input['re_factor_correccion'],
-                ':carga' => $input['re_carga'],
-                ':id' => $input['re_id']
+                ':fecha' => $input['pi_fecha'],
+                ':cod_prod' => $input['pi_cod_prod'],
+                ':molde' => $input['pi_molde'],
+                ':descripcion' => $input['pi_descripcion'],
+                ':resina' => $input['pi_resina'],
+                ':espesor' => $input['pi_espesor'],
+                ':area' => $input['pi_area_proy'],
+                ':color' => $input['pi_color'],
+                ':empaque' => $input['pi_tipo_empaque'],
+                ':piezas' => $input['pi_piezas'],
+                ':caja_pzs' => $input['pi_caja_no_pzs'],
+                ':caja_tam' => $input['pi_caja_tamano'],
+                ':bolsa1' => $input['pi_bolsa1'],
+                ':bolsa2' => $input['pi_bolsa2'],
+                ':tarima' => $input['pi_tarima_no_cajas'],
+                ':id' => $input['pi_id']
             ];
 
             if ($rol == 2) { $params[':empresa'] = $empresaId; }
@@ -73,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($input['action'] === 'delete') {
         try {
-            $sql = "DELETE FROM resinas WHERE re_id = :id";
-            if ($rol == 2) { $sql .= " AND re_empresa = :empresa"; }
+            $sql = "DELETE FROM piezas WHERE pi_id = :id";
+            if ($rol == 2) { $sql .= " AND pi_empresa = :empresa"; }
             $stmt = $conn->prepare($sql);
             $params = [':id' => $input['id']];
             if ($rol == 2) { $params[':empresa'] = $empresaId; }
@@ -85,35 +85,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $sql = "SELECT 
-            r.re_id,
-            r.re_fecha,
-            r.re_cod_int,
-            r.re_tipo_resina,
-            r.re_grado,
-            r.re_porc_reciclado,
-            r.re_temp_masa_max,
-            r.re_temp_masa_min,
-            r.re_temp_ref_max,
-            r.re_temp_ref_min,
-            r.re_sec_temp,
-            r.re_sec_tiempo,
-            r.re_densidad,
-            r.re_factor_correccion,
-            r.re_carga,
+            p.pi_id,
+            p.pi_fecha,
+            p.pi_cod_prod,
+            p.pi_molde,
+            p.pi_descripcion,
+            p.pi_resina,
+            p.pi_espesor,
+            p.pi_area_proy,
+            p.pi_color,
+            p.pi_tipo_empaque,
+            p.pi_piezas,
+            p.pi_caja_no_pzs,
+            p.pi_caja_tamano,
+            p.pi_bolsa1,
+            p.pi_bolsa2,
+            p.pi_tarima_no_cajas,
             u.us_nombre AS nombre_usuario,
             e.em_nombre AS nombre_empresa
-        FROM resinas r
-        INNER JOIN usuarios u ON r.re_usuario = u.us_id
-        INNER JOIN empresas e ON r.re_empresa = e.em_id
+        FROM piezas p
+        INNER JOIN usuarios u ON p.pi_usuario = u.us_id
+        INNER JOIN empresas e ON p.pi_empresa = e.em_id
         WHERE 1=1";
 
-if ($rol == 2 || $rol == 3) { $sql .= " AND r.re_empresa = :empresa"; }
-$sql .= " ORDER BY r.re_fecha DESC";
+if ($rol == 2) { 
+    $sql .= " AND p.pi_empresa = :empresa"; 
+} elseif ($rol == 3) {
+    $sql .= " AND p.pi_empresa = :empresa";
+}
+
+$sql .= " ORDER BY p.pi_fecha DESC";
 
 $stmt = $conn->prepare($sql);
-if ($rol == 2 || $rol == 3) { $stmt->bindParam(':empresa', $empresaId, PDO::PARAM_INT); }
+if ($rol == 2 || $rol == 3) { 
+    $stmt->bindParam(':empresa', $empresaId, PDO::PARAM_INT); 
+}
 $stmt->execute();
-$resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$piezas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -122,7 +130,7 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de resinas</title>
+    <title>Listado de piezas</title>
     <link rel="icon" type="image/png" href="imagenes/loguito.png">
     <link rel="stylesheet" href="css/acg.estilos.css">
     
@@ -133,7 +141,7 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <style>
         .header { justify-content: space-between; }
         .tabla-registros td, .tabla-registros th { vertical-align: middle; font-size: 0.85em; white-space: nowrap; padding: 6px 8px; border-bottom: 1px solid #eee; }
-        .tabla-registros { width: 100%; border-collapse: collapse; min-width: 2000px; }
+        .tabla-registros { width: 100%; border-collapse: collapse; min-width: 2500px; }
         .tabla-container-scroll { overflow-x: auto; padding-bottom: 15px; }
         
         .filtros-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: center; }
@@ -179,10 +187,10 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <header class="header">
     <div class="header-title-group">
         <a href="registros.php"><img src="imagenes/logo.png" alt="Logo" class="header-logo"></a>
-        <a href="registros.php"><h1>Listado de resinas</h1></a>
+        <a href="registros.php"><h1>Listado de piezas</h1></a>
     </div>
     <div>
-        <a href="form-resina.php" class="back-button">➕ Nueva Resina</a>
+        <a href="form-pieza.php" class="back-button">➕ Nueva Pieza</a>
         <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
     </div>
 </header>
@@ -191,28 +199,20 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="form-section">
 
         <div class="filtros-container">
-            <label>
-                🔍 Buscar:
-                <input type="text" id="filtroGlobal" placeholder="Escribe para filtrar...">
-            </label>
-
-            <label>
-                Campo:
+            <label>🔍 Buscar: <input type="text" id="filtroGlobal" placeholder="Escribe para filtrar..."></label>
+            <label>Campo: 
                 <select id="campoFiltro">
                     <option value="all">Todos los campos</option>
-                    <option value="1">Código interno</option>
-                    <option value="2">Tipo resina</option>
-                    <option value="3">Grado</option>
+                    <option value="1">Código producto</option>
+                    <option value="3">Descripción</option>
+                    <option value="4">Resina</option>
                 </select>
             </label>
-
-            <label>
-                Registros por página:
+            <label>Registros: 
                 <select id="pageSize" class="page-size-select">
                     <option value="25">25</option><option value="50" selected>50</option><option value="100">100</option>
                 </select>
             </label>
-
             <div class="export-buttons">
                 <button type="button" class="btn-export" id="btnExportCSV">⬇️ Exportar Excel (CSV)</button>
                 <button type="button" class="btn-export" id="btnExportPDF">⬇️ Exportar PDF</button>
@@ -220,54 +220,55 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="registros-section">
-            <?php if (empty($resinas)): ?>
-                <p>No hay resinas registradas para los criterios de búsqueda.</p>
+            <?php if (empty($piezas)): ?>
+                <p>No hay piezas registradas para los criterios de búsqueda.</p>
             <?php else: ?>
                 <div class="tabla-container-scroll">
-                    <table class="tabla-registros" id="tablaResinas">
+                    <table class="tabla-registros" id="tablaPiezas">
                         <thead>
                         <tr>
                             <?php if ($puedeEditarEliminar): ?> <th style="min-width:160px;">Acciones</th> <?php endif; ?>
                             <th>Fecha registro</th>
-                            <th>Código interno</th><th>Tipo resina</th><th>Grado</th><th>% reciclado</th>
-                            <th>Temp. masa máx.</th><th>Temp. masa mín.</th>
-                            <th>Temp. ref. máx.</th><th>Temp. ref. mín.</th>
-                            <th>Secado temp.</th><th>Secado tiempo</th>
-                            <th>Densidad</th><th>Factor corrección</th><th>Carga</th>
+                            <th>Código producto</th><th>Molde</th><th>Descripción</th><th>Resina</th>
+                            <th>Espesor</th><th>Área proyectada</th><th>Color</th><th>Tipo empaque</th>
+                            <th>Piezas</th><th>Caja no. pzs</th><th>Tamaño caja</th>
+                            <th>Bolsa 1</th><th>Bolsa 2</th><th>Tarima no. cajas</th>
                             <th>Usuario</th><th>Empresa</th>
                         </tr>
                         </thead>
                         <tbody id="cuerpoTabla">
-                        <?php foreach ($resinas as $r): ?>
-                            <tr id="row-<?= $r['re_id'] ?>">
+                        <?php foreach ($piezas as $p): ?>
+                            <tr id="row-<?= $p['pi_id'] ?>">
                                 <?php if ($puedeEditarEliminar): ?>
                                     <td>
-                                        <button class="btn btn-primary btn-edit" onclick="toggleEdit(<?= $r['re_id'] ?>)">Editar</button>
-                                        <button class="btn btn-success btn-save" onclick="guardarFila(<?= $r['re_id'] ?>)">Guardar</button>
-                                        <button class="btn btn-danger btn-delete" onclick="eliminarFila(<?= $r['re_id'] ?>)">Eliminar</button>
+                                        <button class="btn btn-primary btn-edit" onclick="toggleEdit(<?= $p['pi_id'] ?>)">Editar</button>
+                                        <button class="btn btn-success btn-save" onclick="guardarFila(<?= $p['pi_id'] ?>)">Guardar</button>
+                                        <button class="btn btn-danger btn-delete" onclick="eliminarFila(<?= $p['pi_id'] ?>)">Eliminar</button>
                                     </td>
                                 <?php endif; ?>
 
-                                <td><?= htmlspecialchars($r['re_fecha']) ?></td>
+                                <td><span class="view-data"><?= htmlspecialchars($p['pi_fecha']) ?></span><input type="date" class="edit-input" id="fecha_<?= $p['pi_id'] ?>" value="<?= date('Y-m-d', strtotime($p['pi_fecha'])) ?>"></td>
                                 
-                                <td><span class="view-data"><?= $r['re_cod_int'] ?></span><input class="edit-input" id="cod_int_<?= $r['re_id'] ?>" value="<?= $r['re_cod_int'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_tipo_resina'] ?></span><input class="edit-input" id="tipo_<?= $r['re_id'] ?>" value="<?= $r['re_tipo_resina'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_grado'] ?></span><input class="edit-input" id="grado_<?= $r['re_id'] ?>" value="<?= $r['re_grado'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_porc_reciclado'] ?></span><input type="number" step="0.01" class="edit-input" id="reciclado_<?= $r['re_id'] ?>" value="<?= $r['re_porc_reciclado'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_cod_prod'] ?></span><input class="edit-input" id="cod_prod_<?= $p['pi_id'] ?>" value="<?= $p['pi_cod_prod'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_molde'] ?></span><input class="edit-input" id="molde_<?= $p['pi_id'] ?>" value="<?= $p['pi_molde'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_descripcion'] ?></span><input class="edit-input" id="descripcion_<?= $p['pi_id'] ?>" value="<?= $p['pi_descripcion'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_resina'] ?></span><input class="edit-input" id="resina_<?= $p['pi_id'] ?>" value="<?= $p['pi_resina'] ?>"></td>
                                 
-                                <td><span class="view-data"><?= $r['re_temp_masa_max'] ?></span><input type="number" step="0.01" class="edit-input" id="masa_max_<?= $r['re_id'] ?>" value="<?= $r['re_temp_masa_max'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_temp_masa_min'] ?></span><input type="number" step="0.01" class="edit-input" id="masa_min_<?= $r['re_id'] ?>" value="<?= $r['re_temp_masa_min'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_temp_ref_max'] ?></span><input type="number" step="0.01" class="edit-input" id="ref_max_<?= $r['re_id'] ?>" value="<?= $r['re_temp_ref_max'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_temp_ref_min'] ?></span><input type="number" step="0.01" class="edit-input" id="ref_min_<?= $r['re_id'] ?>" value="<?= $r['re_temp_ref_min'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_espesor'] ?></span><input type="number" step="0.01" class="edit-input" id="espesor_<?= $p['pi_id'] ?>" value="<?= $p['pi_espesor'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_area_proy'] ?></span><input type="number" step="0.01" class="edit-input" id="area_<?= $p['pi_id'] ?>" value="<?= $p['pi_area_proy'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_color'] ?></span><input class="edit-input" id="color_<?= $p['pi_id'] ?>" value="<?= $p['pi_color'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_tipo_empaque'] ?></span><input class="edit-input" id="empaque_<?= $p['pi_id'] ?>" value="<?= $p['pi_tipo_empaque'] ?>"></td>
                                 
-                                <td><span class="view-data"><?= $r['re_sec_temp'] ?></span><input type="number" step="0.01" class="edit-input" id="sec_temp_<?= $r['re_id'] ?>" value="<?= $r['re_sec_temp'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_sec_tiempo'] ?></span><input type="number" step="0.01" class="edit-input" id="sec_tiempo_<?= $r['re_id'] ?>" value="<?= $r['re_sec_tiempo'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_densidad'] ?></span><input type="number" step="0.0001" class="edit-input" id="densidad_<?= $r['re_id'] ?>" value="<?= $r['re_densidad'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_factor_correccion'] ?></span><input type="number" step="0.01" class="edit-input" id="factor_<?= $r['re_id'] ?>" value="<?= $r['re_factor_correccion'] ?>"></td>
-                                <td><span class="view-data"><?= $r['re_carga'] ?></span><input type="number" step="0.01" class="edit-input" id="carga_<?= $r['re_id'] ?>" value="<?= $r['re_carga'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_piezas'] ?></span><input type="number" class="edit-input" id="piezas_<?= $p['pi_id'] ?>" value="<?= $p['pi_piezas'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_caja_no_pzs'] ?></span><input type="number" class="edit-input" id="caja_pzs_<?= $p['pi_id'] ?>" value="<?= $p['pi_caja_no_pzs'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_caja_tamano'] ?></span><input class="edit-input" id="caja_tam_<?= $p['pi_id'] ?>" value="<?= $p['pi_caja_tamano'] ?>"></td>
                                 
-                                <td><?= htmlspecialchars($r['nombre_usuario']) ?></td>
-                                <td><?= htmlspecialchars($r['nombre_empresa']) ?></td>
+                                <td><span class="view-data"><?= $p['pi_bolsa1'] ?></span><input class="edit-input" id="bolsa1_<?= $p['pi_id'] ?>" value="<?= $p['pi_bolsa1'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_bolsa2'] ?></span><input class="edit-input" id="bolsa2_<?= $p['pi_id'] ?>" value="<?= $p['pi_bolsa2'] ?>"></td>
+                                <td><span class="view-data"><?= $p['pi_tarima_no_cajas'] ?></span><input type="number" class="edit-input" id="tarima_<?= $p['pi_id'] ?>" value="<?= $p['pi_tarima_no_cajas'] ?>"></td>
+                                
+                                <td><?= htmlspecialchars($p['nombre_usuario']) ?></td>
+                                <td><?= htmlspecialchars($p['nombre_empresa']) ?></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>
@@ -290,7 +291,7 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
     (function () {
-        const table = document.getElementById('tablaResinas');
+        const table = document.getElementById('tablaPiezas');
         if (!table) return;
         const tbody = table.querySelector('tbody');
         const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -335,7 +336,6 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const end = start + pageSize;
             const pageRows = filteredRows.slice(start, end);
             pageRows.forEach(r => tbody.appendChild(r));
-            
             const from = total === 0 ? 0 : start + 1;
             const to = Math.min(end, total);
             info.textContent = `Mostrando ${from}–${to} de ${total} registros`;
@@ -352,14 +352,14 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         if(btnExportCSV) btnExportCSV.addEventListener('click', () => {
             const t = table.cloneNode(true);
             if(t.rows[0].cells[0].innerText.includes('Acciones')) Array.from(t.rows).forEach(r => r.deleteCell(0));
-            XLSX.writeFile(XLSX.utils.table_to_book(t), "Resinas.xlsx");
+            XLSX.writeFile(XLSX.utils.table_to_book(t), "Piezas.xlsx");
         });
 
         if(btnExportPDF) btnExportPDF.addEventListener('click', () => {
             const doc = new window.jspdf.jsPDF('l', 'mm', 'a3');
-            doc.text("Listado de Resinas", 14, 15);
-            doc.autoTable({ html: '#tablaResinas', startY: 20, styles: { fontSize: 8 }, didParseCell: d => { if(d.column.index === 0 && d.section === 'body') d.cell.text = ''; } });
-            doc.save('Resinas.pdf');
+            doc.text("Listado de Piezas", 14, 15);
+            doc.autoTable({ html: '#tablaPiezas', startY: 20, styles: { fontSize: 8 }, didParseCell: d => { if(d.column.index === 0 && d.section === 'body') d.cell.text = ''; } });
+            doc.save('Piezas.pdf');
         });
 
         renderPage();
@@ -381,23 +381,25 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     function guardarFila(id) {
         if (!confirm("¿Desea guardar los cambios?")) return;
 
-        let datos = { action: 'update', re_id: id };
+        let datos = { action: 'update', pi_id: id };
         
-        datos.re_cod_int = document.getElementById('cod_int_' + id).value;
-        datos.re_tipo_resina = document.getElementById('tipo_' + id).value;
-        datos.re_grado = document.getElementById('grado_' + id).value;
-        datos.re_porc_reciclado = document.getElementById('reciclado_' + id).value;
-        datos.re_temp_masa_max = document.getElementById('masa_max_' + id).value;
-        datos.re_temp_masa_min = document.getElementById('masa_min_' + id).value;
-        datos.re_temp_ref_max = document.getElementById('ref_max_' + id).value;
-        datos.re_temp_ref_min = document.getElementById('ref_min_' + id).value;
-        datos.re_sec_temp = document.getElementById('sec_temp_' + id).value;
-        datos.re_sec_tiempo = document.getElementById('sec_tiempo_' + id).value;
-        datos.re_densidad = document.getElementById('densidad_' + id).value;
-        datos.re_factor_correccion = document.getElementById('factor_' + id).value;
-        datos.re_carga = document.getElementById('carga_' + id).value;
+        datos.pi_fecha = document.getElementById('fecha_' + id).value;
+        datos.pi_cod_prod = document.getElementById('cod_prod_' + id).value;
+        datos.pi_molde = document.getElementById('molde_' + id).value;
+        datos.pi_descripcion = document.getElementById('descripcion_' + id).value;
+        datos.pi_resina = document.getElementById('resina_' + id).value;
+        datos.pi_espesor = document.getElementById('espesor_' + id).value;
+        datos.pi_area_proy = document.getElementById('area_' + id).value;
+        datos.pi_color = document.getElementById('color_' + id).value;
+        datos.pi_tipo_empaque = document.getElementById('empaque_' + id).value;
+        datos.pi_piezas = document.getElementById('piezas_' + id).value;
+        datos.pi_caja_no_pzs = document.getElementById('caja_pzs_' + id).value;
+        datos.pi_caja_tamano = document.getElementById('caja_tam_' + id).value;
+        datos.pi_bolsa1 = document.getElementById('bolsa1_' + id).value;
+        datos.pi_bolsa2 = document.getElementById('bolsa2_' + id).value;
+        datos.pi_tarima_no_cajas = document.getElementById('tarima_' + id).value;
 
-        fetch('list-resina-user.php', {
+        fetch('list-pieza-user.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
@@ -405,7 +407,7 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert("✅ Resina actualizada");
+                alert("✅ Pieza actualizada");
                 location.reload();
             } else {
                 alert("❌ Error: " + data.message);
@@ -414,8 +416,8 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function eliminarFila(id) {
-        if (!confirm("⚠️ ¿Eliminar resina?")) return;
-        fetch('list-resina-user.php', {
+        if (!confirm("⚠️ ¿Eliminar pieza?")) return;
+        fetch('list-pieza-user.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'delete', id: id })
@@ -423,7 +425,7 @@ $resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert("🗑️ Resina eliminada");
+                alert("🗑️ Pieza eliminada");
                 location.reload();
             } else {
                 alert("Error: " + data.message);

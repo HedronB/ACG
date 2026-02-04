@@ -1,12 +1,8 @@
 <?php
-session_start();
+require_once __DIR__ . '/../app/bootstrap.php';
 
-if (!isset($_SESSION['id'])) {
-    header("Location: log.php?error=Debes_iniciar_sesion");
-    exit();
-}
-
-require_once "config/db.php";
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
 
 $usuarioId = $_SESSION['id'];
 $rol       = $_SESSION['rol'];

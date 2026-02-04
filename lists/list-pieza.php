@@ -1,50 +1,35 @@
 <?php
-session_start();
-require_once "protect.php";
-require_once "config/db.php";
+require_once __DIR__ . '/../app/bootstrap.php';
 
-if (!isset($_SESSION['id'], $_SESSION['rol'], $_SESSION['empresa'])) {
-    header("Location: log.php?error=Sesión no válida");
-    exit();
-}
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
 
 $usuarioId = $_SESSION['id'];
 $rol       = $_SESSION['rol'];
 $empresaId = $_SESSION['empresa'];
 
 $sql = "SELECT 
-            m.mo_id,
-            m.mo_fecha,
-            m.mo_no_pieza,
-            m.mo_numero,
-            m.mo_ancho,
-            m.mo_alto,
-            m.mo_largo,
-            m.mo_placas_voladas,
-            m.mo_anillo_centrador,
-            m.mo_no_circ_agua,
-            m.mo_peso,
-            m.mo_apert_min,
-            m.mo_abierto,
-            m.mo_tipo_colada,
-            m.mo_no_zonas,
-            m.mo_no_cavidades,
-            m.mo_peso_pieza,
-            m.mo_puert_cavidad,
-            m.mo_no_coladas,
-            m.mo_peso_colada,
-            m.mo_peso_disparo,
-            m.mo_noyos,
-            m.mo_entr_aire,
-            m.mo_thermoreguladores,
-            m.mo_valve_gates,
-            m.mo_tiempo_ciclo,
-            m.mo_cavidades_activas,
+            p.pi_id,
+            p.pi_fecha,
+            p.pi_cod_prod,
+            p.pi_molde,
+            p.pi_descripcion,
+            p.pi_resina,
+            p.pi_espesor,
+            p.pi_area_proy,
+            p.pi_color,
+            p.pi_tipo_empaque,
+            p.pi_piezas,
+            p.pi_caja_no_pzs,
+            p.pi_caja_tamano,
+            p.pi_bolsa1,
+            p.pi_bolsa2,
+            p.pi_tarima_no_cajas,
             u.us_nombre AS nombre_usuario,
             e.em_nombre AS nombre_empresa
-        FROM moldes m
-        INNER JOIN usuarios u ON m.mo_usuario = u.us_id
-        INNER JOIN empresas e ON m.mo_empresa = e.em_id";
+        FROM piezas p
+        INNER JOIN usuarios u ON p.pi_usuario = u.us_id
+        INNER JOIN empresas e ON p.pi_empresa = e.em_id";
 
 $where  = "";
 $params = [];
@@ -53,11 +38,11 @@ switch ($rol) {
     case 1:
         break;
     case 2:
-        $where = " WHERE m.mo_empresa = :empresa";
+        $where = " WHERE p.pi_empresa = :empresa";
         $params[':empresa'] = $empresaId;
         break;
     case 3:
-        $where = " WHERE m.mo_usuario = :usuario";
+        $where = " WHERE p.pi_usuario = :usuario";
         $params[':usuario'] = $usuarioId;
         break;
     default:
@@ -65,11 +50,11 @@ switch ($rol) {
         exit();
 }
 
-$sql .= $where . " ORDER BY m.mo_fecha DESC";
+$sql .= $where . " ORDER BY p.pi_fecha DESC";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
-$moldes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$piezas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $puedeEditarEliminar = ($rol == 1 || $rol == 2);
 $menu_retorno = "";
@@ -97,7 +82,7 @@ switch ($_SESSION['rol']) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de moldes</title>
+    <title>Listado de piezas</title>
     <link rel="icon" type="image/png" href="imagenes/loguito.png">
     <link rel="stylesheet" href="css/acg.estilos.css">
     <style>
@@ -199,7 +184,7 @@ switch ($_SESSION['rol']) {
                 <img src="imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
             </a>
             <a href="registros.php">
-                <h1>Listado de moldes</h1>
+                <h1>Listado de piezas</h1>
             </a>
         </div>
 
@@ -222,33 +207,22 @@ switch ($_SESSION['rol']) {
                     <select id="campoFiltro">
                         <option value="all">Todos los campos</option>
                         <option value="0">Fecha registro</option>
-                        <option value="1">No. pieza</option>
-                        <option value="2">No. molde</option>
-                        <option value="3">Ancho</option>
-                        <option value="4">Alto</option>
-                        <option value="5">Largo</option>
-                        <option value="6">Placas voladas</option>
-                        <option value="7">Anillo centrador</option>
-                        <option value="8">No. circ. agua</option>
-                        <option value="9">Peso</option>
-                        <option value="10">Apertura mín.</option>
-                        <option value="11">Abierto</option>
-                        <option value="12">Tipo colada</option>
-                        <option value="13">No. zonas</option>
-                        <option value="14">No. cavidades</option>
-                        <option value="15">Peso pieza</option>
-                        <option value="16">Puer. por cavidad</option>
-                        <option value="17">No. coladas</option>
-                        <option value="18">Peso colada</option>
-                        <option value="19">Peso disparo</option>
-                        <option value="20">Noyos</option>
-                        <option value="21">Entrada aire</option>
-                        <option value="22">Thermoreguladores</option>
-                        <option value="23">Valve gates</option>
-                        <option value="24">Tiempo ciclo</option>
-                        <option value="25">Cavidades activas</option>
-                        <option value="26">Usuario</option>
-                        <option value="27">Empresa</option>
+                        <option value="1">Código producto</option>
+                        <option value="2">Molde</option>
+                        <option value="3">Descripción</option>
+                        <option value="4">Resina</option>
+                        <option value="5">Espesor</option>
+                        <option value="6">Área proyectada</option>
+                        <option value="7">Color</option>
+                        <option value="8">Tipo empaque</option>
+                        <option value="9">Piezas</option>
+                        <option value="10">Caja no. pzs</option>
+                        <option value="11">Tamaño caja</option>
+                        <option value="12">Bolsa 1</option>
+                        <option value="13">Bolsa 2</option>
+                        <option value="14">Tarima no. cajas</option>
+                        <option value="15">Usuario</option>
+                        <option value="16">Empresa</option>
                     </select>
                 </label>
 
@@ -269,39 +243,28 @@ switch ($_SESSION['rol']) {
             </div>
 
             <div class="registros-section">
-                <?php if (empty($moldes)): ?>
-                    <p>No hay moldes registrados para los criterios de búsqueda.</p>
+                <?php if (empty($piezas)): ?>
+                    <p>No hay piezas registradas para los criterios de búsqueda.</p>
                 <?php else: ?>
                     <div class="tabla-container-scroll">
-                        <table class="tabla-registros" id="tablaMoldes">
+                        <table class="tabla-registros" id="tablaPiezas">
                             <thead>
                                 <tr>
                                     <th>Fecha registro</th>
-                                    <th>No. pieza</th>
-                                    <th>No. molde</th>
-                                    <th>Ancho</th>
-                                    <th>Alto</th>
-                                    <th>Largo</th>
-                                    <th>Placas voladas</th>
-                                    <th>Anillo centrador</th>
-                                    <th>No. circ. agua</th>
-                                    <th>Peso</th>
-                                    <th>Apertura mín.</th>
-                                    <th>Abierto</th>
-                                    <th>Tipo colada</th>
-                                    <th>No. zonas</th>
-                                    <th>No. cavidades</th>
-                                    <th>Peso pieza</th>
-                                    <th>Puer. por cavidad</th>
-                                    <th>No. coladas</th>
-                                    <th>Peso colada</th>
-                                    <th>Peso disparo</th>
-                                    <th>Noyos</th>
-                                    <th>Entrada aire</th>
-                                    <th>Thermoreguladores</th>
-                                    <th>Valve gates</th>
-                                    <th>Tiempo ciclo</th>
-                                    <th>Cavidades activas</th>
+                                    <th>Código producto</th>
+                                    <th>Molde</th>
+                                    <th>Descripción</th>
+                                    <th>Resina</th>
+                                    <th>Espesor</th>
+                                    <th>Área proyectada</th>
+                                    <th>Color</th>
+                                    <th>Tipo empaque</th>
+                                    <th>Piezas</th>
+                                    <th>Caja no. pzs</th>
+                                    <th>Tamaño caja</th>
+                                    <th>Bolsa 1</th>
+                                    <th>Bolsa 2</th>
+                                    <th>Tarima no. cajas</th>
                                     <th>Usuario</th>
                                     <th>Empresa</th>
                                     <?php if ($puedeEditarEliminar): ?>
@@ -310,43 +273,32 @@ switch ($_SESSION['rol']) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($moldes as $m): ?>
-                                    <tr data-id="<?= (int)$m['mo_id'] ?>">
-                                        <td><?= htmlspecialchars($m['mo_fecha']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_pieza']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_numero']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_ancho']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_alto']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_largo']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_placas_voladas']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_anillo_centrador']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_circ_agua']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_apert_min']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_abierto']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_tipo_colada']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_zonas']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_cavidades']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso_pieza']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_puert_cavidad']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_coladas']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso_colada']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso_disparo']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_noyos']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_entr_aire']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_thermoreguladores']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_valve_gates']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_tiempo_ciclo']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_cavidades_activas']) ?></td>
-                                        <td><?= htmlspecialchars($m['nombre_usuario']) ?></td>
-                                        <td><?= htmlspecialchars($m['nombre_empresa']) ?></td>
+                                <?php foreach ($piezas as $p): ?>
+                                    <tr data-id="<?= (int)$p['pi_id'] ?>">
+                                        <td><?= htmlspecialchars($p['pi_fecha']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_cod_prod']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_molde']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_descripcion']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_resina']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_espesor']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_area_proy']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_color']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_tipo_empaque']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_piezas']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_caja_no_pzs']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_caja_tamano']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_bolsa1']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_bolsa2']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_tarima_no_cajas']) ?></td>
+                                        <td><?= htmlspecialchars($p['nombre_usuario']) ?></td>
+                                        <td><?= htmlspecialchars($p['nombre_empresa']) ?></td>
                                         <?php if ($puedeEditarEliminar): ?>
                                             <td>
-                                                <a href="editar_molde.php?id=<?= (int)$m['mo_id'] ?>" class="btn btn-primary" style="font-size:0.8em;">Editar</a>
-                                                <a href="eliminar_molde.php?id=<?= (int)$m['mo_id'] ?>"
+                                                <a href="editar_pieza.php?id=<?= (int)$p['pi_id'] ?>" class="btn btn-primary" style="font-size:0.8em;">Editar</a>
+                                                <a href="eliminar_pieza.php?id=<?= (int)$p['pi_id'] ?>"
                                                 class="btn btn-danger"
                                                 style="font-size:0.8em;"
-                                                onclick="return confirm('¿Seguro que desea eliminar este molde?');">
+                                                onclick="return confirm('¿Seguro que desea eliminar esta pieza?');">
                                                     Eliminar
                                                 </a>
                                             </td>
@@ -376,7 +328,7 @@ switch ($_SESSION['rol']) {
 
     <script>
         (function () {
-            const table = document.getElementById('tablaMoldes');
+            const table = document.getElementById('tablaPiezas');
             if (!table) return;
 
             const tbody = table.querySelector('tbody');
@@ -499,7 +451,7 @@ switch ($_SESSION['rol']) {
             }
 
             btnExportCSV.addEventListener('click', () => {
-                exportTableToCSV('moldes.csv');
+                exportTableToCSV('piezas.csv');
             });
 
             btnExportPDF.addEventListener('click', () => {

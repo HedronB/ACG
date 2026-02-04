@@ -1,12 +1,8 @@
 <?php
-session_start();
-require_once "../protect.php";
+require_once __DIR__ . '/../app/bootstrap.php';
 
-// Verificamos sesión
-if (!isset($_SESSION['id'])) {
-    header("Location: ../log.php");
-    exit();
-}
+require_once BASE_PATH . '/app/auth/protect.php';
+require_once BASE_PATH . '/app/config/db.php';
 
 $nombre = $_SESSION['nombre'];
 $rol = $_SESSION['rol'];
