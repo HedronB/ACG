@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
@@ -11,8 +11,8 @@ require_once BASE_PATH . '/app/config/db.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consultar Información</title>
-    <link rel="icon" type="image/png" href="../imagenes/loguito.png">
-    <link rel="stylesheet" href="../css/acg.estilos.css">
+    <link rel="icon" type="image.png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
     <style>
         .header {
             justify-content: space-between;
@@ -24,59 +24,54 @@ require_once BASE_PATH . '/app/config/db.php';
 
     <header class="header">
         <div class="header-title-group">
-            <a href="menu_admin.php">
-                <img src="../imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+            <a href="menu_user.php">
+                <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
             </a>
-            <a href="menu_admin.php">
+            <a href="menu_user.php">
                 <h1>Consultar Información</h1>
             </a>
         </div>
 
-        <a href="menu_admin.php" class="back-button">⬅️ Volver</a>
+        <a href="menu_user.php" class="back-button">⬅️ Volver</a>
     </header>
 
     <main class="main-container">
         <div class="menu-grid">
 
-            <a href="../list-registros.php" class="menu-card">
-                <div class="icon">🏢</div>
-                <h3>Empresas</h3>
-            </a>
-
-            <a href="../list-maquina.php" class="menu-card">
+            <a href="/lists/list-maquina.php" class="menu-card">
                 <div class="icon">🏭</div>
                 <h3>Máquinas</h3>
             </a>
 
-            <a href="../list-molde.php" class="menu-card">
+            <a href="/lists/list-molde.php" class="menu-card">
                 <div class="icon">📦</div>
                 <h3>Moldes</h3>
             </a>
 
-            <a href="../list-resina.php" class="menu-card">
+            <a href="/lists/list-resina.php" class="menu-card">
                 <div class="icon">💧</div>
                 <h3>Resinas</h3>
             </a>
 
-            <a href="../list-pieza.php" class="menu-card">
+            <a href="/lists/list-pieza.php" class="menu-card">
                 <div class="icon">🧩</div>
                 <h3>Piezas</h3>
             </a>
 
-            <a href="form-hojaResultado.php" class="menu-card">
+            <!-- <a href="../form-hojaResultado.php" class="menu-card">
                 <div class="icon">📊</div>
                 <h3>Hoja de Resultado</h3>
             </a>
 
-            <a href="form-hojaProceso.php" class="menu-card">
+            <a href="../form-hojaProceso.php" class="menu-card">
                 <div class="icon">📋</div>
                 <h3>Hoja de Proceso</h3>
             </a>
 
-            <a href="../list-proceso.php" class="menu-card disabled">
+            <a href="proceso.php" class="menu-card disabled">
                 <div class="icon">⚙️</div>
                 <h3>Ingeniería de Proceso</h3>
-            </a>
+            </a> -->
 
         </div>
     </main>

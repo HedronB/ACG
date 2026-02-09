@@ -57,13 +57,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
 </head>
 <body>
 
     <header class="header">
-        <img src="imagenes/logo.png" alt="Logo ACG" class="header-logo">
+        <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
         <h1>Iniciar Sesión</h1>
     </header>
 
@@ -71,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="form-section">
 
-            <form action="log.php" method="POST">
+            <form action="log.php" method="POST" class="input-form">
 
                 <label>Correo Electrónico</label>
                 <input type="email" name="correo" placeholder="Correo electrónico" required>

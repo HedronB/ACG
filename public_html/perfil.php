@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $_SESSION["nombre"] = $nuevoNombre;
             $_SESSION["correo"] = $nuevoCorreo;
 
-            echo "<script>alert('Perfil actualizado correctamente'); window.location='perfil.php';</script>";
+            echo "<script>alert('Perfil actualizado correctamente'); window.location='/perfil.php';</script>";
             exit();
         } else {
             echo "<script>alert('Error al actualizar el perfil');</script>";
@@ -73,8 +73,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
     <style>
         .header {
             justify-content: space-between;
@@ -92,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <header class="header">
         <div class="header-title-group">
             <a href="<?= $menu_retorno ?>">
-                <img src="imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+                <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
             </a>
             <a href="<?= $menu_retorno ?>">
                 <h1>Mi Perfil</h1>

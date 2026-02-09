@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
@@ -11,8 +11,8 @@ require_once BASE_PATH . '/app/config/db.php';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Formulario de Pieza</title>
-  <link rel="icon" type="image/png" href="imagenes/loguito.png" />
-  <link rel="stylesheet" href="css/acg.estilos.css" />
+  <link rel="icon" type="image/png" href="/imagenes/loguito.png" />
+  <link rel="stylesheet" href="/css/acg.estilos.css" />
   <style>
     .header {
       justify-content: space-between;
@@ -24,12 +24,12 @@ require_once BASE_PATH . '/app/config/db.php';
   <header class="header">
     <div class="header-title-group">
       <img
-        src="imagenes/logo.png"
-        alt="Logo de la Empresa"
+        src="/imagenes/logo.png"
+        alt="Logo ACG"
         class="header-logo" />
       <h1>Formulario - Pieza</h1>
     </div>
-    <a href="registros.php" class="back-button">⬅️ Volver</a>
+    <a href="/registros.php" class="back-button">⬅️ Volver</a>
   </header>
 
   <div class="form-container">
@@ -339,7 +339,7 @@ require_once BASE_PATH . '/app/config/db.php';
         return;
       }
 
-      fetch("guardar_pieza.php", {
+      fetch("/actions/guardar_pieza.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

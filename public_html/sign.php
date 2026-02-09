@@ -30,13 +30,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrarse</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
 </head>
 <body>
 
     <header class="header">
-        <img src="imagenes/logo.png" alt="Logo ACG" class="header-logo">
+        <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
         <h1>Registrarse</h1>
     </header>
 

@@ -30,8 +30,8 @@ switch ($_SESSION['rol']) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Datos</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
     <style>
         .header {
             justify-content: space-between;
@@ -44,7 +44,7 @@ switch ($_SESSION['rol']) {
     <header class="header">
         <div class="header-title-group">
             <a href="<?= $menu_retorno ?>">
-                <img src="imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+                <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
             </a>
             <a href="<?= $menu_retorno ?>">
                 <h1>Registrar Datos</h1>
@@ -61,23 +61,23 @@ switch ($_SESSION['rol']) {
         </div>
 
         <div class="menu-grid">
-            <a href="form-maquina.php" class="menu-card">
+            <a href="/forms/form-maquina.php" class="menu-card">
                 <div class="icon">🏭</div>
                 <h3>Máquinas</h3>
             </a>
-            <a href="form-molde.php" class="menu-card">
+            <a href="/forms/form-molde.php" class="menu-card">
                 <div class="icon">📦</div>
                 <h3>Moldes</h3>
             </a>
-            <a href="form-resina.php" class="menu-card">
+            <a href="/forms/form-resina.php" class="menu-card">
                 <div class="icon">💧</div>
                 <h3>Resinas</h3>
             </a>
-            <a href="form-pieza.php" class="menu-card">
+            <a href="/forms/form-pieza.php" class="menu-card">
                 <div class="icon">🧩</div>
                 <h3>Piezas</h3>
             </a>
-            <a href="form-proceso.php" class="menu-card disabled">
+            <a href="/forms/form-proceso.php" class="menu-card disabled">
                 <div class="icon">⚙️</div>
                 <h3>Ingeniería de Proceso</h3>
             </a>

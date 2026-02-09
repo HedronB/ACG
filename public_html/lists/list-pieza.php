@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
@@ -9,26 +9,27 @@ $rol       = $_SESSION['rol'];
 $empresaId = $_SESSION['empresa'];
 
 $sql = "SELECT 
-            r.re_id,
-            r.re_fecha,
-            r.re_cod_int,
-            r.re_tipo_resina,
-            r.re_grado,
-            r.re_porc_reciclado,
-            r.re_temp_masa_max,
-            r.re_temp_masa_min,
-            r.re_temp_ref_max,
-            r.re_temp_ref_min,
-            r.re_sec_temp,
-            r.re_sec_tiempo,
-            r.re_densidad,
-            r.re_factor_correccion,
-            r.re_carga,
+            p.pi_id,
+            p.pi_fecha,
+            p.pi_cod_prod,
+            p.pi_molde,
+            p.pi_descripcion,
+            p.pi_resina,
+            p.pi_espesor,
+            p.pi_area_proy,
+            p.pi_color,
+            p.pi_tipo_empaque,
+            p.pi_piezas,
+            p.pi_caja_no_pzs,
+            p.pi_caja_tamano,
+            p.pi_bolsa1,
+            p.pi_bolsa2,
+            p.pi_tarima_no_cajas,
             u.us_nombre AS nombre_usuario,
             e.em_nombre AS nombre_empresa
-        FROM resinas r
-        INNER JOIN usuarios u ON r.re_usuario = u.us_id
-        INNER JOIN empresas e ON r.re_empresa = e.em_id";
+        FROM piezas p
+        INNER JOIN usuarios u ON p.pi_usuario = u.us_id
+        INNER JOIN empresas e ON p.pi_empresa = e.em_id";
 
 $where  = "";
 $params = [];
@@ -37,11 +38,11 @@ switch ($rol) {
     case 1:
         break;
     case 2:
-        $where = " WHERE r.re_empresa = :empresa";
+        $where = " WHERE p.pi_empresa = :empresa";
         $params[':empresa'] = $empresaId;
         break;
     case 3:
-        $where = " WHERE r.re_usuario = :usuario";
+        $where = " WHERE p.pi_usuario = :usuario";
         $params[':usuario'] = $usuarioId;
         break;
     default:
@@ -49,11 +50,11 @@ switch ($rol) {
         exit();
 }
 
-$sql .= $where . " ORDER BY r.re_fecha DESC";
+$sql .= $where . " ORDER BY p.pi_fecha DESC";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
-$resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$piezas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $puedeEditarEliminar = ($rol == 1 || $rol == 2);
 $menu_retorno = "";
@@ -81,9 +82,9 @@ switch ($_SESSION['rol']) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de resinas</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <title>Listado de piezas</title>
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
     <style>
         .header {
             justify-content: space-between;
@@ -179,16 +180,15 @@ switch ($_SESSION['rol']) {
 <body>
     <header class="header">
         <div class="header-title-group">
-            <a href="registros.php">
-                <img src="imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+            <a href="/registros.php">
+                <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
             </a>
-            <a href="registros.php">
-                <h1>Listado de resinas</h1>
+            <a href="/registros.php">
+                <h1>Listado de piezas</h1>
             </a>
         </div>
 
         <div>
-            <!-- <a href="form-maquina.php" class="back-button">➕ Nueva máquina</a> -->
             <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
         </div>
     </header>
@@ -207,21 +207,22 @@ switch ($_SESSION['rol']) {
                     <select id="campoFiltro">
                         <option value="all">Todos los campos</option>
                         <option value="0">Fecha registro</option>
-                        <option value="1">Código interno</option>
-                        <option value="2">Tipo resina</option>
-                        <option value="3">Grado</option>
-                        <option value="4">% reciclado</option>
-                        <option value="5">Temp. masa máx.</option>
-                        <option value="6">Temp. masa mín.</option>
-                        <option value="7">Temp. ref. máx.</option>
-                        <option value="8">Temp. ref. mín.</option>
-                        <option value="9">Secado temp.</option>
-                        <option value="10">Secado tiempo</option>
-                        <option value="11">Densidad</option>
-                        <option value="12">Factor corrección</option>
-                        <option value="13">Carga</option>
-                        <option value="14">Usuario</option>
-                        <option value="15">Empresa</option>
+                        <option value="1">Código producto</option>
+                        <option value="2">Molde</option>
+                        <option value="3">Descripción</option>
+                        <option value="4">Resina</option>
+                        <option value="5">Espesor</option>
+                        <option value="6">Área proyectada</option>
+                        <option value="7">Color</option>
+                        <option value="8">Tipo empaque</option>
+                        <option value="9">Piezas</option>
+                        <option value="10">Caja no. pzs</option>
+                        <option value="11">Tamaño caja</option>
+                        <option value="12">Bolsa 1</option>
+                        <option value="13">Bolsa 2</option>
+                        <option value="14">Tarima no. cajas</option>
+                        <option value="15">Usuario</option>
+                        <option value="16">Empresa</option>
                     </select>
                 </label>
 
@@ -242,27 +243,28 @@ switch ($_SESSION['rol']) {
             </div>
 
             <div class="registros-section">
-                <?php if (empty($resinas)): ?>
-                    <p>No hay resinas registradas para los criterios de búsqueda.</p>
+                <?php if (empty($piezas)): ?>
+                    <p>No hay piezas registradas para los criterios de búsqueda.</p>
                 <?php else: ?>
                     <div class="tabla-container-scroll">
-                        <table class="tabla-registros" id="tablaResinas">
+                        <table class="tabla-registros" id="tablaPiezas">
                             <thead>
                                 <tr>
                                     <th>Fecha registro</th>
-                                    <th>Código interno</th>
-                                    <th>Tipo resina</th>
-                                    <th>Grado</th>
-                                    <th>% reciclado</th>
-                                    <th>Temp. masa máx.</th>
-                                    <th>Temp. masa mín.</th>
-                                    <th>Temp. ref. máx.</th>
-                                    <th>Temp. ref. mín.</th>
-                                    <th>Secado temp.</th>
-                                    <th>Secado tiempo</th>
-                                    <th>Densidad</th>
-                                    <th>Factor corrección</th>
-                                    <th>Carga</th>
+                                    <th>Código producto</th>
+                                    <th>Molde</th>
+                                    <th>Descripción</th>
+                                    <th>Resina</th>
+                                    <th>Espesor</th>
+                                    <th>Área proyectada</th>
+                                    <th>Color</th>
+                                    <th>Tipo empaque</th>
+                                    <th>Piezas</th>
+                                    <th>Caja no. pzs</th>
+                                    <th>Tamaño caja</th>
+                                    <th>Bolsa 1</th>
+                                    <th>Bolsa 2</th>
+                                    <th>Tarima no. cajas</th>
                                     <th>Usuario</th>
                                     <th>Empresa</th>
                                     <?php if ($puedeEditarEliminar): ?>
@@ -271,31 +273,32 @@ switch ($_SESSION['rol']) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($resinas as $r): ?>
-                                    <tr data-id="<?= (int)$r['re_id'] ?>">
-                                        <td><?= htmlspecialchars($r['re_fecha']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_cod_int']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_tipo_resina']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_grado']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_porc_reciclado']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_temp_masa_max']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_temp_masa_min']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_temp_ref_max']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_temp_ref_min']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_sec_temp']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_sec_tiempo']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_densidad']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_factor_correccion']) ?></td>
-                                        <td><?= htmlspecialchars($r['re_carga']) ?></td>
-                                        <td><?= htmlspecialchars($r['nombre_usuario']) ?></td>
-                                        <td><?= htmlspecialchars($r['nombre_empresa']) ?></td>
+                                <?php foreach ($piezas as $p): ?>
+                                    <tr data-id="<?= (int)$p['pi_id'] ?>">
+                                        <td><?= htmlspecialchars($p['pi_fecha']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_cod_prod']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_molde']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_descripcion']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_resina']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_espesor']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_area_proy']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_color']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_tipo_empaque']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_piezas']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_caja_no_pzs']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_caja_tamano']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_bolsa1']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_bolsa2']) ?></td>
+                                        <td><?= htmlspecialchars($p['pi_tarima_no_cajas']) ?></td>
+                                        <td><?= htmlspecialchars($p['nombre_usuario']) ?></td>
+                                        <td><?= htmlspecialchars($p['nombre_empresa']) ?></td>
                                         <?php if ($puedeEditarEliminar): ?>
                                             <td>
-                                                <a href="editar_resina.php?id=<?= (int)$r['re_id'] ?>" class="btn btn-primary" style="font-size:0.8em;">Editar</a>
-                                                <a href="eliminar_resina.php?id=<?= (int)$r['re_id'] ?>"
+                                                <a href="editar_pieza.php?id=<?= (int)$p['pi_id'] ?>" class="btn btn-primary" style="font-size:0.8em;">Editar</a>
+                                                <a href="eliminar_pieza.php?id=<?= (int)$p['pi_id'] ?>"
                                                 class="btn btn-danger"
                                                 style="font-size:0.8em;"
-                                                onclick="return confirm('¿Seguro que desea eliminar esta resina?');">
+                                                onclick="return confirm('¿Seguro que desea eliminar esta pieza?');">
                                                     Eliminar
                                                 </a>
                                             </td>
@@ -325,7 +328,7 @@ switch ($_SESSION['rol']) {
 
     <script>
         (function () {
-            const table = document.getElementById('tablaResinas');
+            const table = document.getElementById('tablaPiezas');
             if (!table) return;
 
             const tbody = table.querySelector('tbody');
@@ -419,7 +422,7 @@ switch ($_SESSION['rol']) {
             });
 
             function exportTableToCSV(filename) {
-                const visibleRows = filteredRows;
+                const visibleRows = filteredRows; 
                 const csvRows = [];
                 const ths = table.querySelectorAll('thead th');
                 const header = Array.from(ths).map(th => `"${th.innerText.replace(/"/g, '""')}"`);
@@ -448,7 +451,7 @@ switch ($_SESSION['rol']) {
             }
 
             btnExportCSV.addEventListener('click', () => {
-                exportTableToCSV('resinas.csv');
+                exportTableToCSV('piezas.csv');
             });
 
             btnExportPDF.addEventListener('click', () => {

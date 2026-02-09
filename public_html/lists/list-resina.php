@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
@@ -9,38 +9,26 @@ $rol       = $_SESSION['rol'];
 $empresaId = $_SESSION['empresa'];
 
 $sql = "SELECT 
-            m.mo_id,
-            m.mo_fecha,
-            m.mo_no_pieza,
-            m.mo_numero,
-            m.mo_ancho,
-            m.mo_alto,
-            m.mo_largo,
-            m.mo_placas_voladas,
-            m.mo_anillo_centrador,
-            m.mo_no_circ_agua,
-            m.mo_peso,
-            m.mo_apert_min,
-            m.mo_abierto,
-            m.mo_tipo_colada,
-            m.mo_no_zonas,
-            m.mo_no_cavidades,
-            m.mo_peso_pieza,
-            m.mo_puert_cavidad,
-            m.mo_no_coladas,
-            m.mo_peso_colada,
-            m.mo_peso_disparo,
-            m.mo_noyos,
-            m.mo_entr_aire,
-            m.mo_thermoreguladores,
-            m.mo_valve_gates,
-            m.mo_tiempo_ciclo,
-            m.mo_cavidades_activas,
+            r.re_id,
+            r.re_fecha,
+            r.re_cod_int,
+            r.re_tipo_resina,
+            r.re_grado,
+            r.re_porc_reciclado,
+            r.re_temp_masa_max,
+            r.re_temp_masa_min,
+            r.re_temp_ref_max,
+            r.re_temp_ref_min,
+            r.re_sec_temp,
+            r.re_sec_tiempo,
+            r.re_densidad,
+            r.re_factor_correccion,
+            r.re_carga,
             u.us_nombre AS nombre_usuario,
             e.em_nombre AS nombre_empresa
-        FROM moldes m
-        INNER JOIN usuarios u ON m.mo_usuario = u.us_id
-        INNER JOIN empresas e ON m.mo_empresa = e.em_id";
+        FROM resinas r
+        INNER JOIN usuarios u ON r.re_usuario = u.us_id
+        INNER JOIN empresas e ON r.re_empresa = e.em_id";
 
 $where  = "";
 $params = [];
@@ -49,11 +37,11 @@ switch ($rol) {
     case 1:
         break;
     case 2:
-        $where = " WHERE m.mo_empresa = :empresa";
+        $where = " WHERE r.re_empresa = :empresa";
         $params[':empresa'] = $empresaId;
         break;
     case 3:
-        $where = " WHERE m.mo_usuario = :usuario";
+        $where = " WHERE r.re_usuario = :usuario";
         $params[':usuario'] = $usuarioId;
         break;
     default:
@@ -61,11 +49,11 @@ switch ($rol) {
         exit();
 }
 
-$sql .= $where . " ORDER BY m.mo_fecha DESC";
+$sql .= $where . " ORDER BY r.re_fecha DESC";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
-$moldes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$resinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $puedeEditarEliminar = ($rol == 1 || $rol == 2);
 $menu_retorno = "";
@@ -93,9 +81,9 @@ switch ($_SESSION['rol']) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de moldes</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <title>Listado de resinas</title>
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
     <style>
         .header {
             justify-content: space-between;
@@ -191,15 +179,16 @@ switch ($_SESSION['rol']) {
 <body>
     <header class="header">
         <div class="header-title-group">
-            <a href="registros.php">
-                <img src="imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+            <a href="/registros.php">
+                <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
             </a>
-            <a href="registros.php">
-                <h1>Listado de moldes</h1>
+            <a href="/registros.php">
+                <h1>Listado de resinas</h1>
             </a>
         </div>
 
         <div>
+            <!-- <a href="form-maquina.php" class="back-button">➕ Nueva máquina</a> -->
             <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
         </div>
     </header>
@@ -218,33 +207,21 @@ switch ($_SESSION['rol']) {
                     <select id="campoFiltro">
                         <option value="all">Todos los campos</option>
                         <option value="0">Fecha registro</option>
-                        <option value="1">No. pieza</option>
-                        <option value="2">No. molde</option>
-                        <option value="3">Ancho</option>
-                        <option value="4">Alto</option>
-                        <option value="5">Largo</option>
-                        <option value="6">Placas voladas</option>
-                        <option value="7">Anillo centrador</option>
-                        <option value="8">No. circ. agua</option>
-                        <option value="9">Peso</option>
-                        <option value="10">Apertura mín.</option>
-                        <option value="11">Abierto</option>
-                        <option value="12">Tipo colada</option>
-                        <option value="13">No. zonas</option>
-                        <option value="14">No. cavidades</option>
-                        <option value="15">Peso pieza</option>
-                        <option value="16">Puer. por cavidad</option>
-                        <option value="17">No. coladas</option>
-                        <option value="18">Peso colada</option>
-                        <option value="19">Peso disparo</option>
-                        <option value="20">Noyos</option>
-                        <option value="21">Entrada aire</option>
-                        <option value="22">Thermoreguladores</option>
-                        <option value="23">Valve gates</option>
-                        <option value="24">Tiempo ciclo</option>
-                        <option value="25">Cavidades activas</option>
-                        <option value="26">Usuario</option>
-                        <option value="27">Empresa</option>
+                        <option value="1">Código interno</option>
+                        <option value="2">Tipo resina</option>
+                        <option value="3">Grado</option>
+                        <option value="4">% reciclado</option>
+                        <option value="5">Temp. masa máx.</option>
+                        <option value="6">Temp. masa mín.</option>
+                        <option value="7">Temp. ref. máx.</option>
+                        <option value="8">Temp. ref. mín.</option>
+                        <option value="9">Secado temp.</option>
+                        <option value="10">Secado tiempo</option>
+                        <option value="11">Densidad</option>
+                        <option value="12">Factor corrección</option>
+                        <option value="13">Carga</option>
+                        <option value="14">Usuario</option>
+                        <option value="15">Empresa</option>
                     </select>
                 </label>
 
@@ -265,39 +242,27 @@ switch ($_SESSION['rol']) {
             </div>
 
             <div class="registros-section">
-                <?php if (empty($moldes)): ?>
-                    <p>No hay moldes registrados para los criterios de búsqueda.</p>
+                <?php if (empty($resinas)): ?>
+                    <p>No hay resinas registradas para los criterios de búsqueda.</p>
                 <?php else: ?>
                     <div class="tabla-container-scroll">
-                        <table class="tabla-registros" id="tablaMoldes">
+                        <table class="tabla-registros" id="tablaResinas">
                             <thead>
                                 <tr>
                                     <th>Fecha registro</th>
-                                    <th>No. pieza</th>
-                                    <th>No. molde</th>
-                                    <th>Ancho</th>
-                                    <th>Alto</th>
-                                    <th>Largo</th>
-                                    <th>Placas voladas</th>
-                                    <th>Anillo centrador</th>
-                                    <th>No. circ. agua</th>
-                                    <th>Peso</th>
-                                    <th>Apertura mín.</th>
-                                    <th>Abierto</th>
-                                    <th>Tipo colada</th>
-                                    <th>No. zonas</th>
-                                    <th>No. cavidades</th>
-                                    <th>Peso pieza</th>
-                                    <th>Puer. por cavidad</th>
-                                    <th>No. coladas</th>
-                                    <th>Peso colada</th>
-                                    <th>Peso disparo</th>
-                                    <th>Noyos</th>
-                                    <th>Entrada aire</th>
-                                    <th>Thermoreguladores</th>
-                                    <th>Valve gates</th>
-                                    <th>Tiempo ciclo</th>
-                                    <th>Cavidades activas</th>
+                                    <th>Código interno</th>
+                                    <th>Tipo resina</th>
+                                    <th>Grado</th>
+                                    <th>% reciclado</th>
+                                    <th>Temp. masa máx.</th>
+                                    <th>Temp. masa mín.</th>
+                                    <th>Temp. ref. máx.</th>
+                                    <th>Temp. ref. mín.</th>
+                                    <th>Secado temp.</th>
+                                    <th>Secado tiempo</th>
+                                    <th>Densidad</th>
+                                    <th>Factor corrección</th>
+                                    <th>Carga</th>
                                     <th>Usuario</th>
                                     <th>Empresa</th>
                                     <?php if ($puedeEditarEliminar): ?>
@@ -306,43 +271,31 @@ switch ($_SESSION['rol']) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($moldes as $m): ?>
-                                    <tr data-id="<?= (int)$m['mo_id'] ?>">
-                                        <td><?= htmlspecialchars($m['mo_fecha']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_pieza']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_numero']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_ancho']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_alto']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_largo']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_placas_voladas']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_anillo_centrador']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_circ_agua']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_apert_min']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_abierto']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_tipo_colada']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_zonas']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_cavidades']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso_pieza']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_puert_cavidad']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_no_coladas']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso_colada']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_peso_disparo']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_noyos']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_entr_aire']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_thermoreguladores']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_valve_gates']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_tiempo_ciclo']) ?></td>
-                                        <td><?= htmlspecialchars($m['mo_cavidades_activas']) ?></td>
-                                        <td><?= htmlspecialchars($m['nombre_usuario']) ?></td>
-                                        <td><?= htmlspecialchars($m['nombre_empresa']) ?></td>
+                                <?php foreach ($resinas as $r): ?>
+                                    <tr data-id="<?= (int)$r['re_id'] ?>">
+                                        <td><?= htmlspecialchars($r['re_fecha']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_cod_int']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_tipo_resina']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_grado']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_porc_reciclado']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_temp_masa_max']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_temp_masa_min']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_temp_ref_max']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_temp_ref_min']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_sec_temp']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_sec_tiempo']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_densidad']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_factor_correccion']) ?></td>
+                                        <td><?= htmlspecialchars($r['re_carga']) ?></td>
+                                        <td><?= htmlspecialchars($r['nombre_usuario']) ?></td>
+                                        <td><?= htmlspecialchars($r['nombre_empresa']) ?></td>
                                         <?php if ($puedeEditarEliminar): ?>
                                             <td>
-                                                <a href="editar_molde.php?id=<?= (int)$m['mo_id'] ?>" class="btn btn-primary" style="font-size:0.8em;">Editar</a>
-                                                <a href="eliminar_molde.php?id=<?= (int)$m['mo_id'] ?>"
+                                                <a href="editar_resina.php?id=<?= (int)$r['re_id'] ?>" class="btn btn-primary" style="font-size:0.8em;">Editar</a>
+                                                <a href="eliminar_resina.php?id=<?= (int)$r['re_id'] ?>"
                                                 class="btn btn-danger"
                                                 style="font-size:0.8em;"
-                                                onclick="return confirm('¿Seguro que desea eliminar este molde?');">
+                                                onclick="return confirm('¿Seguro que desea eliminar esta resina?');">
                                                     Eliminar
                                                 </a>
                                             </td>
@@ -372,7 +325,7 @@ switch ($_SESSION['rol']) {
 
     <script>
         (function () {
-            const table = document.getElementById('tablaMoldes');
+            const table = document.getElementById('tablaResinas');
             if (!table) return;
 
             const tbody = table.querySelector('tbody');
@@ -466,7 +419,7 @@ switch ($_SESSION['rol']) {
             });
 
             function exportTableToCSV(filename) {
-                const visibleRows = filteredRows; 
+                const visibleRows = filteredRows;
                 const csvRows = [];
                 const ths = table.querySelectorAll('thead th');
                 const header = Array.from(ths).map(th => `"${th.innerText.replace(/"/g, '""')}"`);
@@ -495,7 +448,7 @@ switch ($_SESSION['rol']) {
             }
 
             btnExportCSV.addEventListener('click', () => {
-                exportTableToCSV('moldes.csv');
+                exportTableToCSV('resinas.csv');
             });
 
             btnExportPDF.addEventListener('click', () => {

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
@@ -49,8 +49,8 @@ $empresas = $conn->query($sqlEmpresas)->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrar usuarios</title>
-    <link rel="icon" type="image/png" href="../imagenes/loguito.png">
-    <link rel="stylesheet" href="../css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
     <style>
         .header {
             justify-content: space-between;
@@ -92,15 +92,15 @@ $empresas = $conn->query($sqlEmpresas)->fetchAll(PDO::FETCH_ASSOC);
 
     <header class="header">
         <div class="header-title-group">
-            <a href="menu_admin.php">
-                <img src="../imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+            <a href="/admin/menu_admin.php">
+                <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
             </a>
-            <a href="menu_admin.php">
+            <a href="/admin/menu_admin.php">
                 <h1>Administrar usuarios</h1>
             </a>
         </div>
 
-        <a href="menu_admin.php" class="back-button">⬅️ Volver</a>
+        <a href="/admin/menu_admin.php" class="back-button">⬅️ Volver</a>
     </header>
 
     <main class="main-container">

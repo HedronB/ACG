@@ -11,14 +11,14 @@ require_once BASE_PATH . '/app/config/db.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión ACG</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
 </head>
 
 <body>
 
     <header class="header">
-        <img src="imagenes/logo.png" alt="Logo ACG" class="header-logo">
+        <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
     </header>
 
     <main class="main-container">

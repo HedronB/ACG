@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
@@ -120,8 +120,8 @@ switch ($_SESSION['rol']) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de máquinas</title>
-    <link rel="icon" type="image/png" href="imagenes/loguito.png">
-    <link rel="stylesheet" href="css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
     <style>
         .header {
             justify-content: space-between;
@@ -282,10 +282,10 @@ switch ($_SESSION['rol']) {
 <body>
 <header class="header">
     <div class="header-title-group">
-        <a href="registros.php">
-            <img src="imagenes/logo.png" alt="Logo de la Empresa" class="header-logo">
+        <a href="/registros.php">
+            <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
         </a>
-        <a href="registros.php">
+        <a href="/registros.php">
             <h1>Listado de máquinas</h1>
         </a>
     </div>

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
@@ -14,15 +14,15 @@ $rol = $_SESSION['rol'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menú Principal</title>
-    <link rel="icon" type="image/png" href="../imagenes/loguito.png">
-    <link rel="stylesheet" href="../css/acg.estilos.css">
+    <link rel="icon" type="image/png" href="/imagenes/loguito.png">
+    <link rel="stylesheet" href="/css/acg.estilos.css">
 </head>
 
 <body>
 
     <header class="header">
         <a href="menu_user.php">
-            <img src="../imagenes/logo.png" alt="Logo ACG" class="header-logo">
+            <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
         </a>
         <a href="menu_user.php">
             <h1>Menú Principal</h1>
@@ -32,7 +32,7 @@ $rol = $_SESSION['rol'];
     <main class="main-container">
         <div class="menu-grid">
 
-            <a href="../registros.php" class="menu-card">
+            <a href="/registros.php" class="menu-card">
                 <div class="icon">📝</div>
                 <h3>Capturar Información</h3>
             </a>
@@ -50,7 +50,7 @@ $rol = $_SESSION['rol'];
             <?php endif; ?>
             
 
-            <a href="../perfil.php" class="menu-card">
+            <a href="/perfil.php" class="menu-card">
                 <div class="icon">👤</div>
                 <h3>Mi Perfil</h3>
             </a>

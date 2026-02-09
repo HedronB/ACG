@@ -1,17 +1,14 @@
--- Alterar la base de datos para que admita caracteres en español
 ALTER DATABASE u372417318_metodo_acg
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
 use u372417318_metodo_acg;
 
--- Roles para las sesiones en la plataforma, estos otorgan permisos y visibilidad de los datos
 CREATE TABLE roles (
     ro_id INT PRIMARY KEY,
     ro_nombre VARCHAR(20)
 );
 
-A cada perfil se le asigna una empresa, este se conecta a cada registro que tiene
 CREATE TABLE empresas (
     em_id INT AUTO_INCREMENT PRIMARY KEY,
     em_nombre VARCHAR(255) NOT NULL
@@ -175,3 +172,44 @@ INSERT INTO empresas (em_nombre) VALUES
 
 INSERT INTO usuarios (us_nombre, us_correo, us_password, us_rol, us_empresa) VALUES
 ('Bryan García', 'bg3-fow@hotmail.com', 'secreto1', 1, 1);
+
+CREATE TABLE plantas (
+    pl_id INT AUTO_INCREMENT PRIMARY KEY,
+    pl_nombre VARCHAR(255) NOT NULL,
+    pl_empresa INT NOT NULL,
+    pl_activo TINYINT(1) DEFAULT 1,
+    pl_fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pl_empresa) REFERENCES empresas(em_id)
+);
+
+ALTER TABLE maquinas
+ADD COLUMN ma_planta INT NULL AFTER ma_empresa,
+ADD COLUMN activo TINYINT(1) DEFAULT 1,
+ADD COLUMN updated_at DATETIME NULL,
+ADD COLUMN updated_by INT NULL,
+ADD CONSTRAINT fk_maquina_planta FOREIGN KEY (ma_planta) REFERENCES plantas(pl_id),
+ADD CONSTRAINT fk_maquina_updated_by FOREIGN KEY (updated_by) REFERENCES usuarios(us_id);
+
+ALTER TABLE moldes
+ADD COLUMN mo_planta INT NULL AFTER mo_empresa,
+ADD COLUMN activo TINYINT(1) DEFAULT 1,
+ADD COLUMN updated_at DATETIME NULL,
+ADD COLUMN updated_by INT NULL,
+ADD CONSTRAINT fk_molde_planta FOREIGN KEY (mo_planta) REFERENCES plantas(pl_id),
+ADD CONSTRAINT fk_molde_updated_by FOREIGN KEY (updated_by) REFERENCES usuarios(us_id);
+
+ALTER TABLE piezas
+ADD COLUMN pi_planta INT NULL AFTER pi_empresa,
+ADD COLUMN activo TINYINT(1) DEFAULT 1,
+ADD COLUMN updated_at DATETIME NULL,
+ADD COLUMN updated_by INT NULL,
+ADD CONSTRAINT fk_pieza_planta FOREIGN KEY (pi_planta) REFERENCES plantas(pl_id),
+ADD CONSTRAINT fk_pieza_updated_by FOREIGN KEY (updated_by) REFERENCES usuarios(us_id);
+
+ALTER TABLE resinas
+ADD COLUMN re_planta INT NULL AFTER re_empresa,
+ADD COLUMN activo TINYINT(1) DEFAULT 1,
+ADD COLUMN updated_at DATETIME NULL,
+ADD COLUMN updated_by INT NULL,
+ADD CONSTRAINT fk_resina_planta FOREIGN KEY (re_planta) REFERENCES plantas(pl_id),
+ADD CONSTRAINT fk_resina_updated_by FOREIGN KEY (updated_by) REFERENCES usuarios(us_id);
