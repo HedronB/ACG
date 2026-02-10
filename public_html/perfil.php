@@ -4,20 +4,20 @@ require_once __DIR__ . '/../app/bootstrap.php';
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
 
-$menu_retorno = "";
+$menu_retorno = "/";
 
 switch ($_SESSION['rol']) {
     case 1:
-        $menu_retorno = "admin/menu_admin.php";
+        $menu_retorno = "/admin/menu_admin.php";
         break;
 
     case 2:
     case 3:
-        $menu_retorno = "user/menu_user.php";
+        $menu_retorno = "/user/menu_user.php";
         break;
 
     default:
-        $menu_retorno = "index.php";
+        $menu_retorno = "/index.php";
 }
 
 if (!isset($_SESSION["id"])) {

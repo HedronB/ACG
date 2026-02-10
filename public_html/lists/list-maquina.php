@@ -93,23 +93,23 @@ $stmt->execute($params);
 $maquinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $puedeEditarEliminar = ($rol == 1 || $rol == 2);
-$menu_retorno = "";
+$menu_retorno = "/";
 
 switch ($_SESSION['rol']) {
     case 1:
-        $menu_retorno = "admin/menu_admin.php";
+        $menu_retorno = "/admin/menu_admin.php";
         break;
 
     case 2:
-        $menu_retorno = "user/menu_user.php";
+        $menu_retorno = "/user/menu_user.php";
         break;
 
     case 3:
-        $menu_retorno = "user/menu_user.php";
+        $menu_retorno = "/user/menu_user.php";
         break;
 
     default:
-        $menu_retorno = "index.php";
+        $menu_retorno = "/index.php";
 }
 
 ?>

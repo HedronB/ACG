@@ -4,6 +4,7 @@ require_once __DIR__ . '/../app/bootstrap.php';
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
 
+ini_set('default_charset', 'UTF-8');
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -89,7 +90,7 @@ try {
             continue;
         }
 
-        $stmt->execute([
+        if ($stmt->execute([
             ':pi_usuario'         => $pi_usuario,
             ':pi_empresa'         => $pi_empresa,
             ':pi_fecha'           => $pi_fecha,
@@ -107,9 +108,9 @@ try {
             ':pi_bolsa1'          => null,
             ':pi_bolsa2'          => null,
             ':pi_tarima_no_cajas' => $r['cajasPorTarima'] ?? null,
-        ]);
-
-        $insertados++;
+        ])) {
+            $insertados++;
+        }
     }
 
     $conn->commit();
@@ -120,10 +121,12 @@ try {
         "insertados" => $insertados
     ]);
 } catch (PDOException $e) {
-    $conn->rollBack();
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
     http_response_code(500);
     echo json_encode([
-        "ok"      => false,
-        "mensaje" => "Error al guardar: " . $e->getMessage()
+        "ok" => false,
+        "mensaje" => "Error interno al guardar registros"
     ]);
 }
