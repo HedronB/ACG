@@ -42,18 +42,18 @@ $sql = "SELECT
         INNER JOIN usuarios u ON m.mo_usuario = u.us_id
         INNER JOIN empresas e ON m.mo_empresa = e.em_id";
 
-$where  = "";
+$where  = " WHERE m.mo_activo = 1";
 $params = [];
 
 switch ($rol) {
     case 1:
         break;
     case 2:
-        $where = " WHERE m.mo_empresa = :empresa";
+        $where .= " AND m.mo_empresa = :empresa";
         $params[':empresa'] = $empresaId;
         break;
     case 3:
-        $where = " WHERE m.mo_usuario = :usuario";
+        $where .= " AND m.mo_usuario = :usuario";
         $params[':usuario'] = $usuarioId;
         break;
     default:
@@ -96,96 +96,9 @@ switch ($_SESSION['rol']) {
     <title>Listado de moldes</title>
     <link rel="icon" type="image/png" href="/imagenes/loguito.png">
     <link rel="stylesheet" href="/css/acg.estilos.css">
-    <style>
-        .header {
-            justify-content: space-between;
-        }
-        .tabla-registros td,
-        .tabla-registros th {
-            vertical-align: middle;
-            font-size: 0.85em;
-            white-space: nowrap;
-        }
-        .tabla-registros {
-            width: 100%;
-        }
-        .tabla-container-scroll {
-            overflow-x: auto;
-        }
-        .filtros-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .filtros-container input[type="text"],
-        .filtros-container select {
-            padding: 6px 8px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            font-size: 0.9em;
-        }
-        .pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .pagination-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .pagination-buttons button {
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background-color: #f3f4f6;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
-        .pagination-buttons button[disabled] {
-            opacity: 0.5;
-            cursor: default;
-        }
-        .page-size-select {
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            font-size: 0.85em;
-        }
-        .pagination-info {
-            font-size: 0.85em;
-        }
-        .export-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .btn-export {
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background-color: #e5e7eb;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
-
-        @media print {
-            header, footer, .filtros-container, .pagination-container {
-                display: none !important;
-            }
-            .tabla-container-scroll {
-                overflow: visible;
-            }
-            body {
-                margin: 10px;
-            }
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -307,7 +220,7 @@ switch ($_SESSION['rol']) {
                             </thead>
                             <tbody>
                                 <?php foreach ($moldes as $m): ?>
-                                    <tr data-id="<?= (int)$m['mo_id'] ?>">
+                                    <tr data-id="<?= (int)$m['mo_id'] ?>" data-molde='<?= json_encode($m, JSON_HEX_APOS | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT) ?>'>
                                         <td><?= htmlspecialchars($m['mo_fecha']) ?></td>
                                         <td><?= htmlspecialchars($m['mo_no_pieza']) ?></td>
                                         <td><?= htmlspecialchars($m['mo_numero']) ?></td>
@@ -338,13 +251,8 @@ switch ($_SESSION['rol']) {
                                         <td><?= htmlspecialchars($m['nombre_empresa']) ?></td>
                                         <?php if ($puedeEditarEliminar): ?>
                                             <td>
-                                                <a href="editar_molde.php?id=<?= (int)$m['mo_id'] ?>" class="btn btn-primary" style="font-size:0.8em;">Editar</a>
-                                                <a href="eliminar_molde.php?id=<?= (int)$m['mo_id'] ?>"
-                                                class="btn btn-danger"
-                                                style="font-size:0.8em;"
-                                                onclick="return confirm('¿Seguro que desea eliminar este molde?');">
-                                                    Eliminar
-                                                </a>
+                                                <button type="button" class="btn btn-primary btn-edit" style="font-size:0.75em;" data-id="<?= (int)$m['mo_id'] ?>">Editar</button>
+                                                <button type="button" class="btn btn-danger btn-delete" style="font-size:0.75em;" data-id="<?= (int)$m['mo_id'] ?>">Eliminar</button>
                                             </td>
                                         <?php endif; ?>
                                     </tr>
@@ -370,140 +278,166 @@ switch ($_SESSION['rol']) {
         <p>Método ACG</p>
     </footer>
 
-    <script>
-        (function () {
-            const table = document.getElementById('tablaMoldes');
-            if (!table) return;
+<?php if ($puedeEditarEliminar): ?>
+<div class="modal-backdrop" id="modalEditar">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Editar molde</h2>
+            <button type="button" class="modal-close" data-close="modalEditar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit_mo_id">
+            <div class="form-grid">
+                <div class="input-group"><label>No. Pieza</label><input type="number step="0.01"" id="edit_mo_no_pieza"></div>
+                <div class="input-group"><label>Número de molde</label><input type="number" id="edit_mo_numero"></div>
+                <div class="input-group"><label>Ancho (mm)</label><input type="number step="0.01"" id="edit_mo_ancho"></div>
+                <div class="input-group"><label>Alto (mm)</label><input type="number step="0.01"" id="edit_mo_alto"></div>
+                <div class="input-group"><label>Largo (mm)</label><input type="number step="0.01"" id="edit_mo_largo"></div>
+                <div class="input-group"><label>Placas voladas</label><input type="number step="0.01"" id="edit_mo_placas_voladas"></div>
+                <div class="input-group"><label>Anillo centrador</label><input type="number step="0.01"" id="edit_mo_anillo_centrador"></div>
+                <div class="input-group"><label>No. circuitos agua</label><input type="number step="0.01"" id="edit_mo_no_circ_agua"></div>
+                <div class="input-group"><label>Peso (kg)</label><input type="number step="0.01"" id="edit_mo_peso"></div>
+                <div class="input-group"><label>Apertura mínima</label><input type="number step="0.01"" id="edit_mo_apert_min"></div>
+                <div class="input-group"><label>Abierto</label><input type="number step="0.01"" id="edit_mo_abierto"></div>
+                <div class="input-group"><label>Tipo colada</label><input type="number step="0.01"" id="edit_mo_tipo_colada"></div>
+                <div class="input-group"><label>No. zonas</label><input type="number" id="edit_mo_no_zonas"></div>
+                <div class="input-group"><label>No. cavidades</label><input type="number" id="edit_mo_no_cavidades"></div>
+                <div class="input-group"><label>Peso pieza</label><input type="number step="0.01"" id="edit_mo_peso_pieza"></div>
+                <div class="input-group"><label>Puerta/cavidad</label><input type="number" id="edit_mo_puert_cavidad"></div>
+                <div class="input-group"><label>No. coladas</label><input type="number step="0.01"" id="edit_mo_no_coladas"></div>
+                <div class="input-group"><label>Peso colada</label><input type="number step="0.01"" id="edit_mo_peso_colada"></div>
+                <div class="input-group"><label>Peso disparo</label><input type="number step="0.01"" id="edit_mo_peso_disparo"></div>
+                <div class="input-group"><label>Noyos</label><input type="text" id="edit_mo_noyos"></div>
+                <div class="input-group"><label>Entrada aire</label><input type="text" id="edit_mo_entr_aire"></div>
+                <div class="input-group"><label>Termoreguladores</label><input type="text" id="edit_mo_thermoreguladores"></div>
+                <div class="input-group"><label>Valve gates</label><input type="text" id="edit_mo_valve_gates"></div>
+                <div class="input-group"><label>Tiempo ciclo</label><input type="text" id="edit_mo_tiempo_ciclo"></div>
+                <div class="input-group"><label>Cavidades activas</label><input type="number" id="edit_mo_cavidades_activas"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="back-button" data-close="modalEditar">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnGuardarEdicion">Guardar cambios</button>
+        </div>
+    </div>
+</div>
+<div class="modal-backdrop" id="modalEliminar">
+    <div class="modal modal-sm">
+        <div class="modal-header">
+            <h2>Eliminar molde</h2>
+            <button type="button" class="modal-close" data-close="modalEliminar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="delete_mo_id">
+            <p>¿Seguro que deseas eliminar este molde?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="back-button" data-close="modalEliminar">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-
-            const filtroGlobal   = document.getElementById('filtroGlobal');
-            const campoFiltro    = document.getElementById('campoFiltro');
-            const pageSizeSelect = document.getElementById('pageSize');
-            const prevBtn        = document.getElementById('prevPage');
-            const nextBtn        = document.getElementById('nextPage');
-            const info           = document.getElementById('paginationInfo');
-            const btnExportCSV   = document.getElementById('btnExportCSV');
-            const btnExportPDF   = document.getElementById('btnExportPDF');
-
-            let filteredRows = rows.slice();
-            let currentPage = 1;
-            let pageSize = parseInt(pageSizeSelect.value, 10);
-
-            function aplicaFiltro() {
-                const term = filtroGlobal.value.toLowerCase().trim();
-                const campo = campoFiltro.value;
-
-                if (!term) {
-                    filteredRows = rows.slice();
-                } else {
-                    filteredRows = rows.filter(row => {
-                        const celdas = Array.from(row.cells);
-                        if (campo === 'all') {
-                            const texto = celdas.map(td => td.innerText.toLowerCase()).join(' ');
-                            return texto.includes(term);
-                        } else {
-                            const idx = parseInt(campo, 10);
-                            if (idx >= 0 && idx < celdas.length) {
-                                const texto = celdas[idx].innerText.toLowerCase();
-                                return texto.includes(term);
-                            }
-                            return false;
-                        }
-                    });
+<script>
+(function(){
+    const table=document.getElementById('tablaMoldes'); if(!table) return;
+    const tbody=table.querySelector('tbody'), rows=Array.from(tbody.querySelectorAll('tr'));
+    const fG=document.getElementById('filtroGlobal'), cF=document.getElementById('campoFiltro');
+    const pS=document.getElementById('pageSize'), pB=document.getElementById('prevPage'), nB=document.getElementById('nextPage'), info=document.getElementById('paginationInfo');
+    let fr=rows.slice(), cp=1, ps=parseInt(pS.value,10);
+    function filter(){
+        const t=fG.value.toLowerCase().trim(), c=cF.value;
+        fr=!t?rows.slice():rows.filter(r=>{const cs=Array.from(r.cells); if(c==='all') return cs.map(td=>td.innerText.toLowerCase()).join(' ').includes(t); const i=parseInt(c,10); return(i>=0&&i<cs.length)?cs[i].innerText.toLowerCase().includes(t):false;}); cp=1; render();
+    }
+    function render(){
+        while(tbody.firstChild) tbody.removeChild(tbody.firstChild);
+        const tot=fr.length, tp=Math.max(1,Math.ceil(tot/ps)); if(cp>tp) cp=tp;
+        const s=(cp-1)*ps, e=s+ps; fr.slice(s,e).forEach(r=>tbody.appendChild(r));
+        info.textContent=`Mostrando ${tot===0?0:s+1}–${Math.min(e,tot)} de ${tot} registros (pág. ${cp} de ${tp})`;
+        pB.disabled=cp<=1; nB.disabled=cp>=tp||tot===0;
+    }
+    fG.addEventListener('input',filter); cF.addEventListener('change',filter);
+    pS.addEventListener('change',()=>{ps=parseInt(pS.value,10);cp=1;render();});
+    pB.addEventListener('click',()=>{if(cp>1){cp--;render();}});
+    nB.addEventListener('click',()=>{if(cp<Math.max(1,Math.ceil(fr.length/ps))){cp++;render();}});
+    document.getElementById('btnExportCSV').addEventListener('click',()=>{
+        const hdrs=Array.from(table.querySelectorAll('thead th')).map(th=>th.innerText.trim());
+        const dRows=fr.map(row=>Array.from(row.querySelectorAll('td')).map(td=>td.innerText.replace(/\s+/g,' ').trim()));
+        const wb=XLSX.utils.book_new();
+        const ws=XLSX.utils.aoa_to_sheet([hdrs,...dRows]);
+        ws['!cols']=hdrs.map((h,i)=>({wch:Math.min(40,Math.max(h.length,...dRows.map(r=>(r[i]||'').length)))}));
+        XLSX.utils.book_append_sheet(wb,ws,'Datos');
+        XLSX.writeFile(wb,'moldes.xlsx');
+    });
+    document.getElementById('btnExportPDF').addEventListener('click',()=>{
+        const hdrs=Array.from(table.querySelectorAll('thead th')).map(th=>th.innerText.trim());
+        const dRows=fr.map(row=>Array.from(row.querySelectorAll('td')).map(td=>td.innerText.replace(/\s+/g,' ').trim()));
+        const {jsPDF}=window.jspdf;
+        const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'letter'});
+        const pW=doc.internal.pageSize.getWidth(), mg=10, uW=pW-mg*2;
+        const cW=hdrs.map((h,i)=>Math.min(40,Math.max(8,Math.max(h.length,...dRows.slice(0,50).map(r=>(r[i]||'').length))*1.8)));
+        const groups=[]; let grp=[],gW=0;
+        for(let i=0;i<hdrs.length;i++){
+            if(gW+cW[i]>uW&&grp.length>0){groups.push(grp);grp=[i];gW=cW[i];}
+            else{grp.push(i);gW+=cW[i];}
+        }
+        if(grp.length>0) groups.push(grp);
+        let first=true;
+        groups.forEach(cols=>{
+            if(!first) doc.addPage(); first=false;
+            const gH=cols.map(i=>hdrs[i]), gD=dRows.map(r=>cols.map(i=>r[i]||''));
+            const gW2=cols.map(i=>cW[i]), sc=uW/gW2.reduce((a,b)=>a+b,0), fW=gW2.map(w=>w*sc);
+            doc.setFontSize(10); doc.text('Listado de Moldes',mg,mg-2);
+            doc.autoTable({head:[gH],body:gD,startY:mg+2,margin:{left:mg,right:mg},tableWidth:uW,
+                columnStyles:Object.fromEntries(fW.map((w,i)=>[i,{cellWidth:w}])),
+                styles:{fontSize:7,cellPadding:1.5,overflow:'linebreak',valign:'middle'},
+                headStyles:{fillColor:[0,0,0],textColor:255,fontStyle:'bold',fontSize:7},
+                alternateRowStyles:{fillColor:[245,245,245]},
+                didDrawPage:function(d){
+                    doc.setFontSize(7);
+                    doc.text(`Pág. ${doc.internal.getCurrentPageInfo().pageNumber}`,pW-mg-20,doc.internal.pageSize.getHeight()-5);
                 }
-                currentPage = 1;
-                renderPage();
-            }
-
-            function renderPage() {
-                while (tbody.firstChild) {
-                    tbody.removeChild(tbody.firstChild);
-                }
-
-                const total = filteredRows.length;
-                const totalPages = Math.max(1, Math.ceil(total / pageSize));
-                if (currentPage > totalPages) currentPage = totalPages;
-
-                const start = (currentPage - 1) * pageSize;
-                const end = start + pageSize;
-                const pageRows = filteredRows.slice(start, end);
-
-                pageRows.forEach(r => tbody.appendChild(r));
-
-                const from = total === 0 ? 0 : start + 1;
-                const to = Math.min(end, total);
-                info.textContent = `Mostrando ${from}–${to} de ${total} registros (pág. ${currentPage} de ${totalPages})`;
-
-                prevBtn.disabled = currentPage <= 1;
-                nextBtn.disabled = currentPage >= totalPages || total === 0;
-            }
-
-            filtroGlobal.addEventListener('input', aplicaFiltro);
-            campoFiltro.addEventListener('change', aplicaFiltro);
-
-            pageSizeSelect.addEventListener('change', () => {
-                pageSize = parseInt(pageSizeSelect.value, 10);
-                currentPage = 1;
-                renderPage();
             });
-
-            prevBtn.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderPage();
-                }
-            });
-
-            nextBtn.addEventListener('click', () => {
-                const total = filteredRows.length;
-                const totalPages = Math.max(1, Math.ceil(total / pageSize));
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderPage();
-                }
-            });
-
-            function exportTableToCSV(filename) {
-                const visibleRows = filteredRows; 
-                const csvRows = [];
-                const ths = table.querySelectorAll('thead th');
-                const header = Array.from(ths).map(th => `"${th.innerText.replace(/"/g, '""')}"`);
-                csvRows.push(header.join(';'));
-
-                visibleRows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    const rowData = Array.from(cells).map(td => {
-                        const text = td.innerText.replace(/\s+/g, ' ').trim();
-                        return `"${text.replace(/"/g, '""')}"`;
-                    });
-                    csvRows.push(rowData.join(';'));
-                });
-
-                const csvString = csvRows.join('\r\n');
-                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement('a');
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            }
-
-            btnExportCSV.addEventListener('click', () => {
-                exportTableToCSV('moldes.csv');
-            });
-
-            btnExportPDF.addEventListener('click', () => {
-                window.print();
-            });
-
-            renderPage();
-        })();
-    </script>
+        });
+        doc.save('moldes.pdf');
+    });
+    render();
+    <?php if($puedeEditarEliminar): ?>
+    const body=document.body;
+    const CAMPOS=['mo_no_pieza', 'mo_numero', 'mo_ancho', 'mo_alto', 'mo_largo', 'mo_placas_voladas', 'mo_anillo_centrador', 'mo_no_circ_agua', 'mo_peso', 'mo_apert_min', 'mo_abierto', 'mo_tipo_colada', 'mo_no_zonas', 'mo_no_cavidades', 'mo_peso_pieza', 'mo_puert_cavidad', 'mo_no_coladas', 'mo_peso_colada', 'mo_peso_disparo', 'mo_noyos', 'mo_entr_aire', 'mo_thermoreguladores', 'mo_valve_gates', 'mo_tiempo_ciclo', 'mo_cavidades_activas'];
+    function oM(id){const el=document.getElementById(id);if(el){el.classList.add('active');body.style.overflow='hidden';}}
+    function cM(id){const el=document.getElementById(id);if(el){el.classList.remove('active');body.style.overflow='';}}
+    document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',function(){cM(this.getAttribute('data-close'));}));
+    document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',function(e){if(e.target===this){this.classList.remove('active');body.style.overflow='';}}));
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-backdrop.active').forEach(m=>m.classList.remove('active'));body.style.overflow='';}});
+    document.querySelectorAll('.btn-edit').forEach(btn=>{
+        btn.addEventListener('click',function(){
+            const row=table.querySelector(`tr[data-id="${this.dataset.id}"]`); if(!row) return;
+            let d; try{d=JSON.parse(row.getAttribute('data-molde'));}catch(e){return;}
+            document.getElementById('edit_mo_id').value=d.mo_id||'';
+            CAMPOS.forEach(c=>{const el=document.getElementById('edit_'+c);if(el)el.value=d[c]??'';});
+            oM('modalEditar');
+        });
+    });
+    document.getElementById('btnGuardarEdicion').addEventListener('click',function(){
+        const id=document.getElementById('edit_mo_id').value; if(!id) return;
+        const payload={mo_id:id}; CAMPOS.forEach(c=>{const el=document.getElementById('edit_'+c);if(el)payload[c]=el.value;});
+        fetch('/actions/update_molde.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>r.json()).then(res=>{if(res.ok){cM('modalEditar');location.reload();}else{alert(res.mensaje||'Error');}})
+        .catch(()=>alert('Error de comunicación'));
+    });
+    document.querySelectorAll('.btn-delete').forEach(btn=>{
+        btn.addEventListener('click',function(){document.getElementById('delete_mo_id').value=this.dataset.id;oM('modalEliminar');});
+    });
+    document.getElementById('btnConfirmarEliminar').addEventListener('click',function(){
+        const id=document.getElementById('delete_mo_id').value; if(!id) return;
+        fetch('/actions/delete_molde.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mo_id:id})})
+        .then(r=>r.json()).then(res=>{if(res.ok){cM('modalEliminar');location.reload();}else{alert(res.mensaje||'Error');}})
+        .catch(()=>alert('Error de comunicación'));
+    });
+    <?php endif; ?>
+})();
+</script>
 </body>
 </html>

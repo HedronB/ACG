@@ -67,18 +67,18 @@ $sql = "SELECT
         INNER JOIN usuarios u ON m.ma_usuario = u.us_id
         INNER JOIN empresas e ON m.ma_empresa = e.em_id";
 
-$where  = "";
+$where  = " WHERE m.ma_activo = 1";
 $params = [];
 
 switch ($rol) {
     case 1:
         break;
     case 2:
-        $where = " WHERE m.ma_empresa = :empresa";
+        $where .= " AND m.ma_empresa = :empresa";
         $params[':empresa'] = $empresaId;
         break;
     case 3:
-        $where = " WHERE m.ma_usuario = :usuario";
+        $where .= " AND m.ma_usuario = :usuario";
         $params[':usuario'] = $usuarioId;
         break;
     default:
@@ -122,161 +122,9 @@ switch ($_SESSION['rol']) {
     <title>Listado de máquinas</title>
     <link rel="icon" type="image/png" href="/imagenes/loguito.png">
     <link rel="stylesheet" href="/css/acg.estilos.css">
-    <style>
-        .header {
-            justify-content: space-between;
-        }
-        .tabla-registros td,
-        .tabla-registros th {
-            vertical-align: middle;
-            font-size: 0.8em;
-            white-space: nowrap;
-        }
-        .tabla-registros {
-            width: 100%;
-        }
-        .tabla-container-scroll {
-            overflow-x: auto;
-        }
-        .filtros-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .filtros-container input[type="text"],
-        .filtros-container select {
-            padding: 6px 8px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            font-size: 0.9em;
-        }
-        .pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .pagination-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .pagination-buttons button {
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background-color: #f3f4f6;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
-        .pagination-buttons button[disabled] {
-            opacity: 0.5;
-            cursor: default;
-        }
-        .page-size-select {
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            font-size: 0.85em;
-        }
-        .pagination-info {
-            font-size: 0.85em;
-        }
-        .export-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .btn-export {
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background-color: #e5e7eb;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
-
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.55);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-        }
-        .modal-backdrop.active {
-            display: flex;
-        }
-        .modal {
-            background: #ffffff;
-            border-radius: 8px;
-            max-width: 900px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.1em;
-        }
-        .modal-close {
-            background: transparent;
-            border: none;
-            font-size: 1.2em;
-            cursor: pointer;
-        }
-        .modal-body {
-            margin-bottom: 15px;
-        }
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        .modal .input-group {
-            margin-bottom: 10px;
-        }
-        .modal label {
-            display: block;
-            font-size: 0.8em;
-            margin-bottom: 2px;
-        }
-        .modal input,
-        .modal select {
-            width: 100%;
-            padding: 6px 8px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            font-size: 0.8em;
-        }
-
-        @media print {
-            header, footer, .filtros-container, .pagination-container, .modal-backdrop {
-                display: none !important;
-            }
-            .tabla-container-scroll {
-                overflow: visible;
-            }
-            body {
-                margin: 10px;
-            }
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -291,7 +139,7 @@ switch ($_SESSION['rol']) {
     </div>
 
     <div>
-        <a href="form-maquina.php" class="back-button">➕ Nueva máquina</a>
+        <!-- <a href="form-maquina.php" class="back-button">➕ Nueva máquina</a> -->
         <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
     </div>
 </header>
@@ -540,302 +388,381 @@ switch ($_SESSION['rol']) {
 </footer>
 
 <?php if ($puedeEditarEliminar): ?>
-    <div class="modal-backdrop" id="modalEditar">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>Editar máquina</h2>
-                <button type="button" class="modal-close" data-close="modalEditar">&times;</button>
+<!-- ── Modal Editar Máquina ── -->
+<div class="modal-backdrop" id="modalEditar">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Editar máquina</h2>
+            <button type="button" class="modal-close" data-close="modalEditar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit_ma_id">
+            <div class="form-grid">
+                <div class="input-group"><label>Marca</label><input type="text" id="edit_ma_marca"></div>
+                <div class="input-group"><label>Modelo</label><input type="text" id="edit_ma_modelo"></div>
+                <div class="input-group"><label>Fecha fabricación</label><input type="date" id="edit_ma_fecha_fabr"></div>
+                <div class="input-group"><label>Ubicación</label><input type="text" id="edit_ma_ubicacion"></div>
+                <div class="input-group"><label>Tipo de máquina</label>
+                    <select id="edit_ma_tipo">
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Hidráulica">Hidráulica</option>
+                        <option value="Eléctrica">Eléctrica</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Ancho (mm)</label><input type="number" step="0.01" id="edit_ma_ancho"></div>
+                <div class="input-group"><label>Largo (mm)</label><input type="number" step="0.01" id="edit_ma_largo"></div>
+                <div class="input-group"><label>Alto (mm)</label><input type="number" step="0.01" id="edit_ma_alto"></div>
+                <div class="input-group"><label>Peso (kg)</label><input type="number" step="0.01" id="edit_ma_peso"></div>
+                <div class="input-group"><label>Vol. tanque aceite</label><input type="number" step="0.01" id="edit_ma_vol_tanq_aceite"></div>
+                <div class="input-group"><label>Tonelaje</label><input type="number" step="0.01" id="edit_ma_tonelaje"></div>
+                <div class="input-group"><label>Dist. barras</label><input type="number" step="0.01" id="edit_ma_dist_barras"></div>
+                <div class="input-group"><label>Tamaño platina</label><input type="number" step="0.01" id="edit_ma_tam_platina"></div>
+                <div class="input-group"><label>Anillo centrador</label><input type="number" step="0.01" id="edit_ma_anillo_centr"></div>
+                <div class="input-group"><label>Alt. máx. molde</label><input type="number" step="0.01" id="edit_ma_alt_max_molde"></div>
+                <div class="input-group"><label>Apertura máx.</label><input type="number" step="0.01" id="edit_ma_apert_max"></div>
+                <div class="input-group"><label>Alt. mín. molde</label><input type="number" step="0.01" id="edit_ma_alt_min_molde"></div>
+                <div class="input-group"><label>Tipo sujeción</label><input type="text" id="edit_ma_tipo_sujecion"></div>
+                <div class="input-group"><label>Molde chico</label><input type="number" step="0.01" id="edit_ma_molde_chico"></div>
+                <div class="input-group"><label>Botado patrón</label><input type="text" id="edit_ma_botado_patron"></div>
+                <div class="input-group"><label>Botado fuerza</label><input type="number" step="0.01" id="edit_ma_botado_fuerza"></div>
+                <div class="input-group"><label>Botado carrera</label><input type="number" step="0.01" id="edit_ma_botado_carrera"></div>
+                <div class="input-group"><label>Tam. unid. inyección</label><input type="number" step="0.01" id="edit_ma_tam_unid_inyec"></div>
+                <div class="input-group"><label>Vol. inyección</label><input type="number" step="0.01" id="edit_ma_vol_inyec"></div>
+                <div class="input-group"><label>Diám. husillo</label><input type="number" step="0.01" id="edit_ma_diam_husillo"></div>
+                <div class="input-group"><label>Carga máx.</label><input type="number" step="0.01" id="edit_ma_carga_max"></div>
+                <div class="input-group"><label>L/D</label><input type="text" id="edit_ma_ld"></div>
+                <div class="input-group"><label>Tipo husillo</label><input type="text" id="edit_ma_tipo_husillo"></div>
+                <div class="input-group"><label>Máx. pres. inyección</label><input type="number" step="0.01" id="edit_ma_max_pres_inyec"></div>
+                <div class="input-group"><label>Máx. contrapresión</label><input type="number" step="0.01" id="edit_ma_max_contrapres"></div>
+                <div class="input-group"><label>Máx. revoluciones</label><input type="number" step="0.01" id="edit_ma_max_revol"></div>
+                <div class="input-group"><label>Máx. vel. inyección</label><input type="number" step="0.01" id="edit_ma_max_vel_inyec"></div>
+                <div class="input-group"><label>Válv. shut-off</label><input type="text" id="edit_ma_valv_shut_off"></div>
+                <div class="input-group"><label>Carga vuelo</label><input type="text" id="edit_ma_carga_vuelo"></div>
+                <div class="input-group"><label>Fuerza apoyo</label><input type="number" step="0.01" id="edit_ma_fuerza_apoyo"></div>
+                <div class="input-group"><label>Noyos</label><input type="number" id="edit_ma_noyos"></div>
+                <div class="input-group"><label>No. válvulas aire</label><input type="number" id="edit_ma_no_valv_aire"></div>
+                <div class="input-group"><label>Tipo válvulas aire</label><input type="text" id="edit_ma_tipo_valv_aire"></div>
+                <div class="input-group"><label>Secador</label><input type="text" id="edit_ma_secador"></div>
+                <div class="input-group"><label>Termoreguladores</label><input type="number" id="edit_ma_termoreguladores"></div>
+                <div class="input-group"><label>Cargador</label><input type="text" id="edit_ma_cargador"></div>
+                <div class="input-group"><label>Canal caliente</label><input type="number" id="edit_ma_canal_caliente"></div>
+                <div class="input-group"><label>Robot</label><input type="text" id="edit_ma_robot"></div>
+                <div class="input-group"><label>Acumulador hidr.</label><input type="text" id="edit_ma_acumul_hidr"></div>
+                <div class="input-group"><label>Voltaje</label><input type="number" step="0.01" id="edit_ma_voltaje"></div>
+                <div class="input-group"><label>Calentamiento</label><input type="number" step="0.01" id="edit_ma_calentamiento"></div>
+                <div class="input-group"><label>Tamaño motor 1</label><input type="number" step="0.01" id="edit_ma_tam_motor_1"></div>
+                <div class="input-group"><label>Tamaño motor 2</label><input type="number" step="0.01" id="edit_ma_tam_motor_2"></div>
             </div>
-            <form id="formEditarMaquina" method="POST" action="update_maquina.php">
-                <div class="modal-body">
-                    <input type="hidden" name="ma_id" id="edit_ma_id">
-
-                    <div class="input-group">
-                        <label for="edit_ma_fecha">Fecha</label>
-                        <input type="datetime-local" name="ma_fecha" id="edit_ma_fecha">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="edit_ma_marca">Marca</label>
-                        <input type="text" name="ma_marca" id="edit_ma_marca">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="edit_ma_modelo">Modelo</label>
-                        <input type="text" name="ma_modelo" id="edit_ma_modelo">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="edit_ma_fecha_fabr">Fecha fabricación</label>
-                        <input type="date" name="ma_fecha_fabr" id="edit_ma_fecha_fabr">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="edit_ma_ubicacion">Ubicación</label>
-                        <input type="text" name="ma_ubicacion" id="edit_ma_ubicacion">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="edit_ma_tipo">Tipo</label>
-                        <input type="number" step="0.01" name="ma_tipo" id="edit_ma_tipo">
-                    </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="back-button" data-close="modalEditar">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                </div>
-            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="back-button" data-close="modalEditar">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnGuardarEdicion">Guardar cambios</button>
         </div>
     </div>
+</div>
 
-    <div class="modal-backdrop" id="modalEliminar">
-        <div class="modal" style="max-width:400px;">
-            <div class="modal-header">
-                <h2>Eliminar máquina</h2>
-                <button type="button" class="modal-close" data-close="modalEliminar">&times;</button>
-            </div>
-            <form id="formEliminarMaquina" method="POST" action="delete_maquina.php">
-                <div class="modal-body">
-                    <input type="hidden" name="ma_id" id="delete_ma_id">
-                    <p>¿Seguro que deseas eliminar esta máquina?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="back-button" data-close="modalEliminar">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
-                </div>
-            </form>
+<!-- ── Modal Eliminar ── -->
+<div class="modal-backdrop" id="modalEliminar">
+    <div class="modal modal-sm">
+        <div class="modal-header">
+            <h2>Eliminar máquina</h2>
+            <button type="button" class="modal-close" data-close="modalEliminar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="delete_ma_id">
+            <p>¿Seguro que deseas eliminar esta máquina? La acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="back-button" data-close="modalEliminar">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
         </div>
     </div>
+</div>
 <?php endif; ?>
 
 <script>
-    (function () {
-        const table = document.getElementById('tablaMaquinas');
-        if (!table) return;
+(function () {
+    const table = document.getElementById('tablaMaquinas');
+    if (!table) return;
 
-        const tbody = table.querySelector('tbody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
+    const tbody = table.querySelector('tbody');
+    const rows  = Array.from(tbody.querySelectorAll('tr'));
 
-        const filtroGlobal   = document.getElementById('filtroGlobal');
-        const campoFiltro    = document.getElementById('campoFiltro');
-        const pageSizeSelect = document.getElementById('pageSize');
-        const prevBtn        = document.getElementById('prevPage');
-        const nextBtn        = document.getElementById('nextPage');
-        const info           = document.getElementById('paginationInfo');
-        const btnExportCSV   = document.getElementById('btnExportCSV');
-        const btnExportPDF   = document.getElementById('btnExportPDF');
+    const filtroGlobal   = document.getElementById('filtroGlobal');
+    const campoFiltro    = document.getElementById('campoFiltro');
+    const pageSizeSelect = document.getElementById('pageSize');
+    const prevBtn        = document.getElementById('prevPage');
+    const nextBtn        = document.getElementById('nextPage');
+    const info           = document.getElementById('paginationInfo');
+    const btnExportCSV   = document.getElementById('btnExportCSV');
+    const btnExportPDF   = document.getElementById('btnExportPDF');
 
-        let filteredRows = rows.slice();
-        let currentPage = 1;
-        let pageSize = parseInt(pageSizeSelect.value, 10);
+    let filteredRows = rows.slice();
+    let currentPage  = 1;
+    let pageSize     = parseInt(pageSizeSelect.value, 10);
 
-        function aplicaFiltro() {
-            const term = filtroGlobal.value.toLowerCase().trim();
-            const campo = campoFiltro.value;
-
-            if (!term) {
-                filteredRows = rows.slice();
-            } else {
-                filteredRows = rows.filter(row => {
-                    const celdas = Array.from(row.cells);
-                    if (campo === 'all') {
-                        const texto = celdas.map(td => td.innerText.toLowerCase()).join(' ');
-                        return texto.includes(term);
-                    } else {
-                        const idx = parseInt(campo, 10);
-                        if (idx >= 0 && idx < celdas.length) {
-                            const texto = celdas[idx].innerText.toLowerCase();
-                            return texto.includes(term);
-                        }
-                        return false;
-                    }
-                });
-            }
-            currentPage = 1;
-            renderPage();
-        }
-
-        function renderPage() {
-            while (tbody.firstChild) {
-                tbody.removeChild(tbody.firstChild);
-            }
-
-            const total = filteredRows.length;
-            const totalPages = Math.max(1, Math.ceil(total / pageSize));
-            if (currentPage > totalPages) currentPage = totalPages;
-
-            const start = (currentPage - 1) * pageSize;
-            const end = start + pageSize;
-            const pageRows = filteredRows.slice(start, end);
-
-            pageRows.forEach(r => tbody.appendChild(r));
-
-            const from = total === 0 ? 0 : start + 1;
-            const to = Math.min(end, total);
-            info.textContent = `Mostrando ${from}–${to} de ${total} registros (pág. ${currentPage} de ${totalPages})`;
-
-            prevBtn.disabled = currentPage <= 1;
-            nextBtn.disabled = currentPage >= totalPages || total === 0;
-        }
-
-        filtroGlobal.addEventListener('input', aplicaFiltro);
-        campoFiltro.addEventListener('change', aplicaFiltro);
-
-        pageSizeSelect.addEventListener('change', () => {
-            pageSize = parseInt(pageSizeSelect.value, 10);
-            currentPage = 1;
-            renderPage();
+    function aplicaFiltro() {
+        const term  = filtroGlobal.value.toLowerCase().trim();
+        const campo = campoFiltro.value;
+        filteredRows = !term ? rows.slice() : rows.filter(row => {
+            const celdas = Array.from(row.cells);
+            if (campo === 'all') return celdas.map(td => td.innerText.toLowerCase()).join(' ').includes(term);
+            const idx = parseInt(campo, 10);
+            return (idx >= 0 && idx < celdas.length) ? celdas[idx].innerText.toLowerCase().includes(term) : false;
         });
-
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderPage();
-            }
-        });
-
-        nextBtn.addEventListener('click', () => {
-            const total = filteredRows.length;
-            const totalPages = Math.max(1, Math.ceil(total / pageSize));
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderPage();
-            }
-        });
-
-        function exportTableToCSV(filename) {
-            const visibleRows = filteredRows;
-            const csvRows = [];
-            const ths = table.querySelectorAll('thead th');
-            const header = Array.from(ths).map(th => `"${th.innerText.replace(/"/g, '""')}"`);
-            csvRows.push(header.join(';'));
-
-            visibleRows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                const rowData = Array.from(cells).map(td => {
-                    const text = td.innerText.replace(/\s+/g, ' ').trim();
-                    return `"${text.replace(/"/g, '""')}"`;
-                });
-                csvRows.push(rowData.join(';'));
-            });
-
-            const csvString = csvRows.join('\r\n');
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        btnExportCSV.addEventListener('click', () => {
-            exportTableToCSV('maquinas.csv');
-        });
-
-        btnExportPDF.addEventListener('click', () => {
-            window.print();
-        });
-
+        currentPage = 1;
         renderPage();
+    }
 
-        <?php if ($puedeEditarEliminar): ?>
-        const body = document.body;
+    function renderPage() {
+        while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+        const total      = filteredRows.length;
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        const start = (currentPage - 1) * pageSize;
+        const end   = start + pageSize;
+        filteredRows.slice(start, end).forEach(r => tbody.appendChild(r));
+        const from = total === 0 ? 0 : start + 1;
+        info.textContent = `Mostrando ${from}–${Math.min(end, total)} de ${total} registros (pág. ${currentPage} de ${totalPages})`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages || total === 0;
+    }
 
-        function openModal(id) {
-            const backdrop = document.getElementById(id);
-            if (!backdrop) return;
-            backdrop.classList.add('active');
-            body.style.overflow = 'hidden';
+    filtroGlobal.addEventListener('input', aplicaFiltro);
+    campoFiltro.addEventListener('change', aplicaFiltro);
+    pageSizeSelect.addEventListener('change', () => { pageSize = parseInt(pageSizeSelect.value, 10); currentPage = 1; renderPage(); });
+    prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderPage(); } });
+    nextBtn.addEventListener('click', () => {
+        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+        if (currentPage < totalPages) { currentPage++; renderPage(); }
+    });
+
+    function getTableData() {
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
+        const dataRows = filteredRows.map(row =>
+            Array.from(row.querySelectorAll('td')).map(td => td.innerText.replace(/\s+/g, ' ').trim())
+        );
+        return { headers, dataRows };
+    }
+
+    btnExportCSV.addEventListener('click', function () {
+        const { headers, dataRows } = getTableData();
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+        // Auto ancho de columnas
+        const colWidths = headers.map((h, i) => ({
+            wch: Math.min(40, Math.max(h.length, ...dataRows.map(r => (r[i] || '').length)))
+        }));
+        ws['!cols'] = colWidths;
+        XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+        XLSX.writeFile(wb, 'maquinas.xlsx');
+    });
+
+    btnExportPDF.addEventListener('click', function () {
+        const { headers, dataRows } = getTableData();
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
+
+        const pageW   = doc.internal.pageSize.getWidth();
+        const margin  = 10;
+        const usableW = pageW - margin * 2;
+
+        // Calcular ancho de cada columna basado en contenido
+        const colWidths = headers.map((h, i) => {
+            const maxLen = Math.max(
+                h.length,
+                ...dataRows.map(r => (r[i] || '').length).slice(0, 50)
+            );
+            return Math.min(40, Math.max(8, maxLen * 1.8));
+        });
+
+        const totalW = colWidths.reduce((a, b) => a + b, 0);
+
+        // Si todo cabe en una sola página de ancho, usar tableWidth normal
+        // Si no, dividir en grupos de columnas que quepan
+        const groups = [];
+        let group = [], groupW = 0;
+        for (let i = 0; i < headers.length; i++) {
+            if (groupW + colWidths[i] > usableW && group.length > 0) {
+                groups.push(group);
+                group = [i];
+                groupW = colWidths[i];
+            } else {
+                group.push(i);
+                groupW += colWidths[i];
+            }
         }
+        if (group.length > 0) groups.push(group);
 
-        function closeModal(id) {
-            const backdrop = document.getElementById(id);
-            if (!backdrop) return;
-            backdrop.classList.remove('active');
+        let firstGroup = true;
+        groups.forEach(colIdxs => {
+            if (!firstGroup) doc.addPage();
+            firstGroup = false;
+
+            const gHeaders = colIdxs.map(i => headers[i]);
+            const gData    = dataRows.map(row => colIdxs.map(i => row[i] || ''));
+            const gWidths  = colIdxs.map(i => colWidths[i]);
+            const scale    = usableW / gWidths.reduce((a, b) => a + b, 0);
+            const finalW   = gWidths.map(w => w * scale);
+
+            doc.setFontSize(10);
+            doc.text('Listado de Máquinas', margin, margin - 2);
+
+            doc.autoTable({
+                head: [gHeaders],
+                body: gData,
+                startY: margin + 2,
+                margin: { left: margin, right: margin },
+                tableWidth: usableW,
+                columnStyles: Object.fromEntries(finalW.map((w, i) => [i, { cellWidth: w }])),
+                styles: {
+                    fontSize: 7,
+                    cellPadding: 1.5,
+                    overflow: 'linebreak',
+                    valign: 'middle',
+                },
+                headStyles: {
+                    fillColor: [0, 0, 0],
+                    textColor: 255,
+                    fontStyle: 'bold',
+                    fontSize: 7,
+                },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                didDrawPage: function (data) {
+                    const pageCount = doc.internal.getNumberOfPages();
+                    doc.setFontSize(7);
+                    doc.text(
+                        `Pág. ${doc.internal.getCurrentPageInfo().pageNumber} de ${pageCount}`,
+                        pageW - margin - 20,
+                        doc.internal.pageSize.getHeight() - 5
+                    );
+                },
+            });
+        });
+
+        doc.save('maquinas.pdf');
+    });
+
+    renderPage();
+
+    <?php if ($puedeEditarEliminar): ?>
+    // ── Modales ────────────────────────────────────────────
+    const body = document.body;
+
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (el) { el.classList.add('active'); body.style.overflow = 'hidden'; }
+    }
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) { el.classList.remove('active'); body.style.overflow = ''; }
+    }
+
+    document.querySelectorAll('[data-close]').forEach(btn => {
+        btn.addEventListener('click', function () { closeModal(this.getAttribute('data-close')); });
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === this) { this.classList.remove('active'); body.style.overflow = ''; }
+        });
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-backdrop.active').forEach(m => m.classList.remove('active'));
             body.style.overflow = '';
         }
+    });
 
-        document.querySelectorAll('.modal-close, [data-close]').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const id = this.getAttribute('data-close');
-                if (id) closeModal(id);
-            });
-        });
+    // ── Mapeo de campos del modal ───────────────────────────
+    const CAMPOS = [
+        'ma_marca','ma_modelo','ma_fecha_fabr','ma_ubicacion','ma_tipo',
+        'ma_ancho','ma_largo','ma_alto','ma_peso','ma_vol_tanq_aceite',
+        'ma_tonelaje','ma_dist_barras','ma_tam_platina','ma_anillo_centr',
+        'ma_alt_max_molde','ma_apert_max','ma_alt_min_molde','ma_tipo_sujecion',
+        'ma_molde_chico','ma_botado_patron','ma_botado_fuerza','ma_botado_carrera',
+        'ma_tam_unid_inyec','ma_vol_inyec','ma_diam_husillo','ma_carga_max',
+        'ma_ld','ma_tipo_husillo','ma_max_pres_inyec','ma_max_contrapres',
+        'ma_max_revol','ma_max_vel_inyec','ma_valv_shut_off','ma_carga_vuelo',
+        'ma_fuerza_apoyo','ma_noyos','ma_no_valv_aire','ma_tipo_valv_aire',
+        'ma_secador','ma_termoreguladores','ma_cargador','ma_canal_caliente',
+        'ma_robot','ma_acumul_hidr','ma_voltaje','ma_calentamiento',
+        'ma_tam_motor_1','ma_tam_motor_2'
+    ];
 
-        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-            backdrop.addEventListener('click', function (e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                    body.style.overflow = '';
-                }
-            });
-        });
+    // Editar
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const row = table.querySelector(`tr[data-id="${this.dataset.id}"]`);
+            if (!row) return;
+            let data;
+            try { data = JSON.parse(row.getAttribute('data-maquina')); } catch(e) { return; }
 
-        document.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const id = this.getAttribute('data-id');
-                const row = table.querySelector('tr[data-id="' + id + '"]');
-                if (!row) return;
-
-                const dataJson = row.getAttribute('data-maquina');
-                if (!dataJson) return;
-
-                let data;
-                try {
-                    data = JSON.parse(dataJson);
-                } catch (e) {
-                    console.error('Error parseando datos de máquina', e);
-                    return;
-                }
-
-                document.getElementById('edit_ma_id').value = data.ma_id || '';
-
-                if (data.ma_fecha) {
-                    const dt = data.ma_fecha.replace(' ', 'T').slice(0, 16);
-                    document.getElementById('edit_ma_fecha').value = dt;
+            document.getElementById('edit_ma_id').value = data.ma_id || '';
+            CAMPOS.forEach(campo => {
+                const el = document.getElementById('edit_' + campo);
+                if (!el) return;
+                let val = data[campo] ?? '';
+                if (el.tagName === 'SELECT') {
+                    el.value = val;
+                } else if (el.type === 'date' && val) {
+                    el.value = val.slice(0, 10);
                 } else {
-                    document.getElementById('edit_ma_fecha').value = '';
+                    el.value = val;
                 }
-
-                document.getElementById('edit_ma_marca').value       = data.ma_marca || '';
-                document.getElementById('edit_ma_modelo').value      = data.ma_modelo || '';
-
-                if (data.ma_fecha_fabr) {
-                    document.getElementById('edit_ma_fecha_fabr').value = data.ma_fecha_fabr.slice(0, 10);
-                } else {
-                    document.getElementById('edit_ma_fecha_fabr').value = '';
-                }
-
-                document.getElementById('edit_ma_ubicacion').value   = data.ma_ubicacion || '';
-                document.getElementById('edit_ma_tipo').value        = data.ma_tipo || '';
-
-                openModal('modalEditar');
             });
+            openModal('modalEditar');
+        });
+    });
+
+    document.getElementById('btnGuardarEdicion').addEventListener('click', function () {
+        const id = document.getElementById('edit_ma_id').value;
+        if (!id) return;
+
+        const payload = { ma_id: id };
+        CAMPOS.forEach(campo => {
+            const el = document.getElementById('edit_' + campo);
+            if (el) payload[campo] = el.value;
         });
 
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const id = this.getAttribute('data-id');
-                document.getElementById('delete_ma_id').value = id;
-                openModal('modalEliminar');
-            });
-        });
+        fetch('/actions/update_maquina.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.ok) { closeModal('modalEditar'); location.reload(); }
+            else { alert(res.mensaje || 'Error al guardar'); }
+        })
+        .catch(() => alert('Error de comunicación con el servidor'));
+    });
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-backdrop.active').forEach(m => {
-                    m.classList.remove('active');
-                });
-                body.style.overflow = '';
-            }
+    // Eliminar
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('delete_ma_id').value = this.dataset.id;
+            openModal('modalEliminar');
         });
-        <?php endif; ?>
-    })();
+    });
+
+    document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
+        const id = document.getElementById('delete_ma_id').value;
+        if (!id) return;
+
+        fetch('/actions/delete_maquina.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ma_id: id })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.ok) { closeModal('modalEliminar'); location.reload(); }
+            else { alert(res.mensaje || 'Error al eliminar'); }
+        })
+        .catch(() => alert('Error de comunicación con el servidor'));
+    });
+    <?php endif; ?>
+})();
 </script>
 </body>
 </html>

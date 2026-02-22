@@ -13,11 +13,6 @@ require_once BASE_PATH . '/app/config/db.php';
   <title>Formulario de Máquina</title>
   <link rel="icon" type="image/png" href="/imagenes/loguito.png" />
   <link rel="stylesheet" href="/css/acg.estilos.css" />
-  <style>
-    .header {
-      justify-content: space-between;
-    }
-  </style>
 </head>
 
 <body>
@@ -416,7 +411,7 @@ require_once BASE_PATH . '/app/config/db.php';
       </button>
     </div>
     <div class="registros-section">
-      <div style="overflow-x: auto">
+      <div class="tabla-container-scroll">
         <table class="tabla-registros" id="tablaRegistros">
           <thead>
             <tr>
@@ -599,6 +594,7 @@ require_once BASE_PATH . '/app/config/db.php';
           document.querySelector(".btn-primary").textContent =
             "Guardar Registro";
         } else {
+          datos.fechaGuardado = new Date().toISOString().slice(0,19);
           registros.push(datos);
           mostrarMensaje("Registro guardado correctamente", "exito");
         }

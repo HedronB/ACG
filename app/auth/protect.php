@@ -38,6 +38,24 @@ $roles_permitidos = [
     'guardar_molde.php' => [1,2,3],
     'guardar_pieza.php' => [1,2,3],
     'guardar_resina.php' => [1,2,3],
+
+    'update_maquina.php' => [1,2,3],
+    'delete_maquina.php' => [1,2,3],
+    'update_molde.php'   => [1,2,3],
+    'delete_molde.php'   => [1,2,3],
+    'update_pieza.php'   => [1,2,3],
+    'delete_pieza.php'   => [1,2,3],
+    'update_resina.php'  => [1,2,3],
+    'delete_resina.php'  => [1,2,3],
+
+    'manage_empresas.php' => [1],
+
+    'create_empresa.php' => [1],
+    'update_empresa.php' => [1],
+    'delete_empresa.php' => [1],
+    'create_planta.php'  => [1],
+    'update_planta.php'  => [1],
+    'delete_planta.php'  => [1],
 ];
 
 

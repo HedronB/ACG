@@ -13,11 +13,6 @@ require_once BASE_PATH . '/app/config/db.php';
     <title>Consultar Información</title>
     <link rel="icon" type="image.png" href="/imagenes/loguito.png">
     <link rel="stylesheet" href="/css/acg.estilos.css">
-    <style>
-        .header {
-            justify-content: space-between;
-        }
-    </style>
 </head>
 
 <body>

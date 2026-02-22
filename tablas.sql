@@ -213,3 +213,108 @@ ADD COLUMN updated_at DATETIME NULL,
 ADD COLUMN updated_by INT NULL,
 ADD CONSTRAINT fk_resina_planta FOREIGN KEY (re_planta) REFERENCES plantas(pl_id),
 ADD CONSTRAINT fk_resina_updated_by FOREIGN KEY (updated_by) REFERENCES usuarios(us_id);
+
+
+ALTER TABLE maquinas
+MODIFY COLUMN ma_tipo VARCHAR(100);
+
+ALTER TABLE maquinas
+DROP FOREIGN KEY fk_maquina_updated_by;
+
+ALTER TABLE maquinas
+DROP COLUMN activo,
+DROP COLUMN updated_at,
+DROP COLUMN updated_by;
+
+ALTER TABLE maquinas
+ADD COLUMN ma_activo TINYINT(1) DEFAULT 1 AFTER ma_planta,
+ADD COLUMN ma_actualizado_en DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ADD COLUMN ma_actualizado_por INT NULL,
+ADD CONSTRAINT fk_maquina_actualizado_por 
+FOREIGN KEY (ma_actualizado_por) REFERENCES usuarios(us_id);
+
+ALTER TABLE maquinas
+ADD INDEX idx_ma_empresa (ma_empresa),
+ADD INDEX idx_ma_planta (ma_planta),
+ADD INDEX idx_ma_usuario (ma_usuario),
+ADD INDEX idx_ma_activo (ma_activo);
+
+ALTER TABLE usuarios
+ADD COLUMN us_planta INT NULL,
+ADD CONSTRAINT fk_usuario_planta 
+    FOREIGN KEY (us_planta) REFERENCES plantas(pl_id);
+
+-- ============================================================
+-- ACG v4 – Migración final corregida para MariaDB
+-- Estado actual: us_planta ya aplicado, *_planta ya existen,
+--                moldes/piezas/resinas aún con activo/updated_at/updated_by
+-- ============================================================
+
+-- ── MOLDES ───────────────────────────────────────────────────
+
+-- 1. Quitar FK que referencia updated_by (bloquea el CHANGE)
+ALTER TABLE moldes
+    DROP FOREIGN KEY fk_molde_updated_by;
+
+-- 2. Renombrar columnas de auditoría
+ALTER TABLE moldes
+    CHANGE COLUMN activo      mo_activo          TINYINT(1) NOT NULL DEFAULT 1,
+    CHANGE COLUMN updated_at  mo_actualizado_en  DATETIME NULL,
+    CHANGE COLUMN updated_by  mo_actualizado_por INT NULL;
+
+-- 3. Recrear FK con el nuevo nombre de columna
+ALTER TABLE moldes
+    ADD CONSTRAINT fk_molde_actualizado_por
+        FOREIGN KEY (mo_actualizado_por) REFERENCES usuarios(us_id);
+
+-- 4. Índices
+ALTER TABLE moldes
+    ADD INDEX idx_mo_empresa (mo_empresa),
+    ADD INDEX idx_mo_planta  (mo_planta),
+    ADD INDEX idx_mo_activo  (mo_activo);
+
+
+-- ── PIEZAS ───────────────────────────────────────────────────
+
+ALTER TABLE piezas
+    DROP FOREIGN KEY fk_pieza_updated_by;
+
+ALTER TABLE piezas
+    CHANGE COLUMN activo      pi_activo          TINYINT(1) NOT NULL DEFAULT 1,
+    CHANGE COLUMN updated_at  pi_actualizado_en  DATETIME NULL,
+    CHANGE COLUMN updated_by  pi_actualizado_por INT NULL;
+
+-- Corregir nombre con ñ → sin ñ
+-- ALTER TABLE piezas
+--     CHANGE COLUMN `pi_caja_tamaño` pi_caja_tamano DECIMAL(10,2) NULL;
+
+ALTER TABLE piezas
+    ADD CONSTRAINT fk_pieza_actualizado_por
+        FOREIGN KEY (pi_actualizado_por) REFERENCES usuarios(us_id);
+
+ALTER TABLE piezas
+    ADD INDEX idx_pi_empresa (pi_empresa),
+    ADD INDEX idx_pi_planta  (pi_planta),
+    ADD INDEX idx_pi_activo  (pi_activo);
+
+
+-- ── RESINAS ──────────────────────────────────────────────────
+
+ALTER TABLE resinas
+    DROP FOREIGN KEY fk_resina_updated_by;
+
+ALTER TABLE resinas
+    CHANGE COLUMN activo      re_activo          TINYINT(1) NOT NULL DEFAULT 1,
+    CHANGE COLUMN updated_at  re_actualizado_en  DATETIME NULL,
+    CHANGE COLUMN updated_by  re_actualizado_por INT NULL;
+
+ALTER TABLE resinas
+    ADD CONSTRAINT fk_resina_actualizado_por
+        FOREIGN KEY (re_actualizado_por) REFERENCES usuarios(us_id);
+
+ALTER TABLE resinas
+    ADD INDEX idx_re_empresa (re_empresa),
+    ADD INDEX idx_re_planta  (re_planta),
+    ADD INDEX idx_re_activo  (re_activo);
+
+-- ── FIN ──────────────────────────────────────────────────────

@@ -1,0 +1,73 @@
+Folder PATH listing for volume Windows
+Volume serial number is 5E36-58DE
+C:.
+¦   output.txt
+¦   tablas.sql
+¦   
++---.private
+¦       .htaccess
+¦       config.json
+¦       
++---app
+¦   ¦   bootstrap.php
+¦   ¦   
+¦   +---auth
+¦   ¦       protect.php
+¦   ¦       
+¦   +---config
+¦   ¦       db.php
+¦   ¦       
+¦   +---core
+¦   ¦       Database.php
+¦   ¦       ModeloBase.php
+¦   ¦       
+¦   +---helpers
+¦   ¦       RequestHelper.php
+¦   ¦       ResponseHelper.php
+¦   ¦       ValidationHelper.php
+¦   ¦       
+¦   +---modelos
+¦           ModeloMaquina.php
+¦           
++---public_html
+    ¦   index.php
+    ¦   log.php
+    ¦   logout.php
+    ¦   perfil.php
+    ¦   registros.php
+    ¦   sign.php
+    ¦   
+    +---actions
+    ¦       guardar_maquina.php
+    ¦       guardar_molde.php
+    ¦       guardar_pieza.php
+    ¦       guardar_resina.php
+    ¦       
+    +---admin
+    ¦       manage_users.php
+    ¦       menu_admin.php
+    ¦       menu_info_admin.php
+    ¦       
+    +---css
+    ¦       acg.estilos.css
+    ¦       
+    +---forms
+    ¦       form-maquina.php
+    ¦       form-molde.php
+    ¦       form-pieza.php
+    ¦       form-resina.php
+    ¦       
+    +---imagenes
+    ¦       logo.png
+    ¦       loguito.png
+    ¦       
+    +---lists
+    ¦       list-maquina.php
+    ¦       list-molde.php
+    ¦       list-pieza.php
+    ¦       list-resina.php
+    ¦       
+    +---user
+            menu_info_user.php
+            menu_user.php
+            

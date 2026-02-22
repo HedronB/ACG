@@ -13,11 +13,6 @@ require_once BASE_PATH . '/app/config/db.php';
   <title>Formulario de Molde</title>
   <link rel="icon" type="image/png" href="/imagenes/loguito.png" />
   <link rel="stylesheet" href="/css/acg.estilos.css" />
-  <style>
-    .header {
-      justify-content: space-between;
-    }
-  </style>
 </head>
 
 <body>
@@ -393,8 +388,8 @@ require_once BASE_PATH . '/app/config/db.php';
         pesoDisparo: document.getElementById("pesoDisparo").value,
         noyos: document.getElementById("noyos").value,
         entradasAire: document.getElementById("entradasAire").value,
-        thermoreguladores: document.getElementById("thermoreguladores").value,
-        valveGates: document.getElementById("valveGates").value,
+        thermoreguladores: document.getElementById("termoreguladores").value,
+        valveGates: document.querySelector("input[name='valveGates']:checked")?.value || "",
         tiempoCiclo: document.getElementById("tiempoCiclo").value,
         cavidadesActivas: document.getElementById("cavidadesActivas").value,
       };
@@ -431,8 +426,7 @@ require_once BASE_PATH . '/app/config/db.php';
       document.getElementById("noyos").value = datos.noyos || "";
       document.getElementById("entradasAire").value =
         datos.entradasAire || "";
-      document.getElementById("thermoreguladores").value =
-        datos.thermoreguladores || "";
+      document.getElementById("termoreguladores").value = datos.thermoreguladores || "";
       document.getElementById("valveGates").value = datos.valveGates || "";
       document.getElementById("tiempoCiclo").value = datos.tiempoCiclo || "";
       document.getElementById("cavidadesActivas").value =
@@ -457,6 +451,7 @@ require_once BASE_PATH . '/app/config/db.php';
           registroEditando = null;
           document.querySelector(".btn-primary").textContent = "Guardar Registro";
         } else {
+          datos.fechaGuardado = new Date().toISOString().slice(0,19);
           registros.push(datos);
           mostrarMensaje("Registro agregado a la tabla", "exito");
         }

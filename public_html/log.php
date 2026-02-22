@@ -1,15 +1,13 @@
 <?php
 require_once __DIR__ . '/../app/bootstrap.php';
-
 require_once BASE_PATH . '/app/config/db.php';
-
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $correo = trim($_POST["correo"]);
     $pass   = trim($_POST["pswrd"]);
 
-    $sql = "SELECT us_id, us_nombre, us_password, us_rol, us_empresa
+    $sql = "SELECT us_id, us_nombre, us_password, us_rol, us_empresa, us_planta
             FROM usuarios
             WHERE us_correo = ?";
 
@@ -29,6 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION["nombre"]  = $u["us_nombre"];
             $_SESSION["rol"]     = $u["us_rol"];
             $_SESSION["empresa"] = $u["us_empresa"];
+            $_SESSION["planta"]  = $u["us_planta"];  // null = super usuario
 
             switch ($u["us_rol"]) {
                 case 1:
@@ -68,10 +67,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </header>
 
     <main class="main-container">
-
         <div class="form-section">
-
             <form action="log.php" method="POST" class="input-form">
+
+                <?php if (isset($error)): ?>
+                    <div class="mensaje error" style="display:block;"><?= htmlspecialchars($error) ?></div>
+                <?php endif; ?>
 
                 <label>Correo Electrónico</label>
                 <input type="email" name="correo" placeholder="Correo electrónico" required>
@@ -79,11 +80,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label>Contraseña</label>
                 <input type="password" name="pswrd" placeholder="Contraseña" required>
 
-                <button class="btn btn-success" type="submit">Entrar</button>
+                <button class="btn btn-primary" type="submit">Entrar</button>
+
+                <div style="text-align:center; margin-top: 8px;">
+                    <a href="recuperar_password.php" style="font-size:0.88em; color:#0056b3;">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
             </form>
-
         </div>
-
     </main>
 
     <footer>

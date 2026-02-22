@@ -49,6 +49,11 @@ require_once BASE_PATH . '/app/config/db.php';
                 <h3>Mi Perfil</h3>
             </a>
 
+            <a href="manage_empresas.php" class="menu-card">
+                <div class="icon">🏭</div>
+                <h3>Empresas y Plantas</h3>
+            </a>
+
             <a href="manage_users.php" class="menu-card">
                 <div class="icon">👥</div>
                 <h3>Administrar Usuarios</h3>
