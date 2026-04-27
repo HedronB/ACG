@@ -1,9 +1,65 @@
 <?php
 require_once __DIR__ . '/../../app/bootstrap.php';
-
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
 require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
+
+$moId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if (!$moId) { header('Location: /lists/list-molde.php'); exit(); }
+
+$usuarioSesion = (int)$_SESSION['id'];
+$empresaSesion = (int)$_SESSION['empresa'];
+$rol           = (int)$_SESSION['rol'];
+
+$stmt = $conn->prepare("SELECT * FROM moldes WHERE mo_id = ? AND mo_activo = 1");
+$stmt->execute([$moId]);
+$reg = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$reg) { header('Location: /lists/list-molde.php?error=no_encontrado'); exit(); }
+if ($rol === 2 && (int)$reg['mo_empresa'] !== $empresaSesion) { header('Location: /lists/list-molde.php?error=sin_permiso'); exit(); }
+if ($rol === 3 && (int)$reg['mo_usuario'] !== $usuarioSesion)  { header('Location: /lists/list-molde.php?error=sin_permiso'); exit(); }
+
+$datosReg = [
+    'numeroPieza'       => $reg['mo_no_pieza'],
+    'numeroMolde'       => $reg['mo_numero'],
+    'ancho'             => $reg['mo_ancho'],
+    'alto'              => $reg['mo_alto'],
+    'largo'             => $reg['mo_largo'],
+    'placasVoladas'     => $reg['mo_placas_voladas'],
+    'anilloCentrador'   => $reg['mo_anillo_centrador'],
+    'circuitosAgua'     => $reg['mo_no_circ_agua'],
+    'peso'              => $reg['mo_peso'],
+    'aperturaMinima'    => $reg['mo_apert_min'],
+    'moldeAbierto'      => $reg['mo_abierto'],
+    'tipoColada'        => $reg['mo_tipo_colada'],
+    'numeroZonas'       => $reg['mo_no_zonas'],
+    'numeroCavidades'   => $reg['mo_no_cavidades'],
+    'pesoPieza'         => $reg['mo_peso_pieza'],
+    'puertosCavidad'    => $reg['mo_puert_cavidad'],
+    'numeroColadas'     => $reg['mo_no_coladas'],
+    'pesoColada'        => $reg['mo_peso_colada'],
+    'pesoDisparo'       => $reg['mo_peso_disparo'],
+    'noyos'             => $reg['mo_noyos'],
+    'entradasAire'      => $reg['mo_entr_aire'],
+    'thermoreguladores' => $reg['mo_thermoreguladores'],
+    'valveGates'        => $reg['mo_valve_gates'],
+    'tiempoCiclo'       => $reg['mo_tiempo_ciclo'],
+    'cavidadesActivas'  => $reg['mo_cavidades_activas'],
+];
+
+$mapaDB = [
+    'numeroPieza'=>'mo_no_pieza','numeroMolde'=>'mo_numero',
+    'ancho'=>'mo_ancho','alto'=>'mo_alto','largo'=>'mo_largo',
+    'placasVoladas'=>'mo_placas_voladas','anilloCentrador'=>'mo_anillo_centrador',
+    'circuitosAgua'=>'mo_no_circ_agua','peso'=>'mo_peso',
+    'aperturaMinima'=>'mo_apert_min','moldeAbierto'=>'mo_abierto',
+    'tipoColada'=>'mo_tipo_colada','numeroZonas'=>'mo_no_zonas',
+    'numeroCavidades'=>'mo_no_cavidades','pesoPieza'=>'mo_peso_pieza',
+    'puertosCavidad'=>'mo_puert_cavidad','numeroColadas'=>'mo_no_coladas',
+    'pesoColada'=>'mo_peso_colada','pesoDisparo'=>'mo_peso_disparo',
+    'noyos'=>'mo_noyos','entradasAire'=>'mo_entr_aire',
+    'thermoreguladores'=>'mo_thermoreguladores','valveGates'=>'mo_valve_gates',
+    'tiempoCiclo'=>'mo_tiempo_ciclo','cavidadesActivas'=>'mo_cavidades_activas',
+];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -11,7 +67,7 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Formulario de Molde</title>
+  <title>Editar Molde</title>
   <link rel="icon" type="image/png" href="/imagenes/loguito.png" />
   <link rel="stylesheet" href="/css/acg.estilos.css" />
 </head>
@@ -23,10 +79,10 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
         src="/imagenes/logo.png"
         alt="Logo ACG"
         class="header-logo" />
-      <h1>Formulario - Molde</h1>
+      <h1>Editar Molde</h1>
     </div>
     <div class="header-right">
-        <a href="/registros.php" class="back-button">⬅️ Volver</a>
+        <a href="/lists/list-molde.php" class="back-button">⬅️ Volver</a>
         <?= burgerBtn() ?>
     </div>
   </header>
@@ -240,68 +296,17 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
           class="btn btn-limpiar" onclick="limpiarFormulario()">🧹 Limpiar
         </button>
         <button type="submit" class="btn sqlbtn">
-          ⬇️ Pasar a Revisar
+          💾 Guardar Cambios
         </button>
       </div>
     </form>
 
-    <h3>Registros Guardados</h3>
-    <div class="form-actions">
-      <button
-        type="button"
-        class="btn btn-excel" onclick="exportarAExcel()">
-        📥 Exportar a Excel
-      </button>
 
-      <button
-        type="button"
-        class="btn btn-guardar" onclick="guardarTablaMoldeEnBD()">
-        💾 Guardar tabla en BD
-      </button>
-    </div>
-    <div class="registros-section">
-      <table class="tabla-registros" id="tablaRegistros">
-        <thead>
-          <tr>
-            <th>Número Pieza</th>
-            <th>Número Molde</th>
-            <th>Ancho</th>
-            <th>Alto</th>
-            <th>Largo</th>
-            <th>Placas Voladas</th>
-            <th>Anillo Centrador</th>
-            <th>Circuitos Agua</th>
-            <th>Peso</th>
-            <th>Apertura Mínima</th>
-            <th>Molde Abierto</th>
-            <th>Tipo Colada</th>
-            <th>Número Zonas</th>
-            <th>Número Cavidades</th>
-            <th>Peso Pieza</th>
-            <th>Puertos X Cavidad</th>
-            <th>Número Coladas</th>
-            <th>Peso Colada</th>
-            <th>Peso Disparo</th>
-            <th>Noyos</th>
-            <th>Entradas Aire</th>
-            <th>Thermoreguladores</th>
-            <th>Valve Gates</th>
-            <th>Tiempo Ciclo</th>
-            <th>Cavidades Activas</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <footer>
-    <p>Método ACG</p>
-  </footer>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
+  const REGISTRO_ID = <?= $moId ?>;
+  const DATOS_REG   = <?= json_encode($datosReg, JSON_UNESCAPED_UNICODE) ?>;
+  const MAPA_DB     = <?= json_encode($mapaDB) ?>;
+
     let registros = [];
     let registroEditando = null;
 
@@ -435,31 +440,25 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 
     document
       .getElementById("formMolde")
-      .addEventListener("submit", function(e) {
+      .addEventListener("submit", async function(e) {
         e.preventDefault();
-
         const datos = obtenerDatosFormulario();
-
         if (!datos.numeroPieza || !datos.numeroMolde) {
-          mostrarMensaje("Número de pieza y número de molde son obligatorios", "error");
-          return;
+          mostrarMensaje("Número de pieza y número de molde son obligatorios", "error"); return;
         }
-
-        if (registroEditando !== null) {
-          registros[registroEditando] = datos;
-          mostrarMensaje("Registro actualizado en la tabla", "exito");
-          registroEditando = null;
-          document.querySelector(".btn-primary").textContent = "Guardar Registro";
-        } else {
-          const _now = new Date();
-          const _pad = n => String(n).padStart(2,'0');
-          datos.fechaGuardado = `${_now.getFullYear()}-${_pad(_now.getMonth()+1)}-${_pad(_now.getDate())}T${_pad(_now.getHours())}:${_pad(_now.getMinutes())}:${_pad(_now.getSeconds())}`;
-          registros.push(datos);
-          mostrarMensaje("Registro agregado a la tabla", "exito");
-        }
-
-        actualizarTabla();
-        limpiarFormulario();
+        const payload = { mo_id: REGISTRO_ID };
+        Object.keys(datos).forEach(k => { if (MAPA_DB[k]) payload[MAPA_DB[k]] = datos[k] || null; });
+        try {
+          const res = await fetch('/actions/update_molde.php', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.ok || data.success) {
+            mostrarMensaje("Cambios guardados correctamente", "exito");
+            setTimeout(() => window.close(), 1500);
+          } else { mostrarMensaje(data.error || data.mensaje || "Error al guardar", "error"); }
+        } catch(err) { mostrarMensaje("Error de conexión", "error"); }
       });
 
     function actualizarTabla() {
@@ -710,6 +709,29 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
         });
       });
     });
+    // Prellenar
+    (function precargar() {
+      const d = DATOS_REG;
+      const campos = [
+        "numeroPieza","numeroMolde","ancho","alto","largo","placasVoladas",
+        "anilloCentrador","circuitosAgua","peso","aperturaMinima","moldeAbierto",
+        "numeroZonas","numeroCavidades","pesoPieza","puertosCavidad",
+        "numeroColadas","pesoColada","pesoDisparo","noyos","entradasAire",
+        "thermoreguladores","valveGates","tiempoCiclo","cavidadesActivas"
+      ];
+      campos.forEach(k => { const el=document.getElementById(k); if(el&&d[k]!=null) el.value=d[k]; });
+      // Select tipoColada
+      if(d.tipoColada){ const s=document.getElementById('tipoColada'); if(s) s.value=d.tipoColada; }
+
+      // Abrir secciones para que los campos sean visibles
+      document.querySelectorAll('.section-header').forEach(h => {
+        h.classList.add('active');
+        const content = h.nextElementSibling;
+        if (content && content.classList.contains('section-content')) {
+          content.style.maxHeight = content.scrollHeight + 'px';
+        }
+      });
+    })();
   </script>
 <?php includeSidebar(); ?>
 </body>

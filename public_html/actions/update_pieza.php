@@ -27,15 +27,16 @@ if ($rol !== 1) {
 
 $campos = [
     'pi_cod_prod','pi_molde','pi_descripcion','pi_resina','pi_espesor',
-    'pi_area_proy','pi_color','pi_tipo_empaque','pi_piezas','pi_caja_no_pzs',
-    'pi_caja_tamaño','pi_bolsa1','pi_bolsa2','pi_tarima_no_cajas'
+    'pi_area_proy','pi_color','pi_porc_molido','pi_tipo_empaque','pi_piezas','pi_caja_no_pzs',
+    'pi_caja_tamano','pi_bolsa1','pi_bolsa2','pi_tarima_no_cajas'
 ];
 
 $sets = implode(', ', array_map(fn($c) => "$c = :$c", $campos));
-$sets .= ', pi_actualizado_en = NOW(), pi_actualizado_por = :pi_actualizado_por';
+$fechaActual = date('Y-m-d H:i:s');
+$sets .= ', pi_actualizado_en = :fecha_actualizado, pi_actualizado_por = :pi_actualizado_por';
 
 $stmt = $conn->prepare("UPDATE piezas SET $sets WHERE pi_id = :pi_id");
-$params = [':pi_id' => $piId, ':pi_actualizado_por' => $usuarioSesion];
+$params = [':pi_id' => $piId, ':pi_actualizado_por' => $usuarioSesion, ':fecha_actualizado' => $fechaActual];
 foreach ($campos as $c) {
     $params[":$c"] = isset($input[$c]) && $input[$c] !== '' ? $input[$c] : null;
 }

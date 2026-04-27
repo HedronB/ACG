@@ -1,9 +1,74 @@
 <?php
 require_once __DIR__ . '/../../app/bootstrap.php';
-
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
 require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
+
+$maId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if (!$maId) { header('Location: /lists/list-maquina.php'); exit(); }
+
+$usuarioSesion = (int)$_SESSION['id'];
+$empresaSesion = (int)$_SESSION['empresa'];
+$rol           = (int)$_SESSION['rol'];
+
+$stmt = $conn->prepare("SELECT * FROM maquinas WHERE ma_id = ? AND ma_activo = 1");
+$stmt->execute([$maId]);
+$reg = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$reg) { header('Location: /lists/list-maquina.php?error=no_encontrado'); exit(); }
+if ($rol === 2 && (int)$reg['ma_empresa'] !== $empresaSesion) { header('Location: /lists/list-maquina.php?error=sin_permiso'); exit(); }
+if ($rol === 3 && (int)$reg['ma_usuario'] !== $usuarioSesion) { header('Location: /lists/list-maquina.php?error=sin_permiso'); exit(); }
+
+// Mapeo columnas DB → id de campo en el formulario
+$datosReg = [
+    'marca'                 => $reg['ma_marca'],
+    'modelo'                => $reg['ma_modelo'],
+    'fechaFabricacion'      => $reg['ma_fecha_fabr'] ? date('Y-m-d', strtotime($reg['ma_fecha_fabr'])) : '',
+    'ubicacion'             => $reg['ma_ubicacion'],
+    'tipoMaquina'           => $reg['ma_tipo'],
+    'dimAncho'              => $reg['ma_ancho'],
+    'dimLargo'              => $reg['ma_largo'],
+    'dimAlto'               => $reg['ma_alto'],
+    'peso'                  => $reg['ma_peso'],
+    'tamanoTanqueAceite'    => $reg['ma_vol_tanq_aceite'],
+    'tonelaje'              => $reg['ma_tonelaje'],
+    'distanciaBarras'       => $reg['ma_dist_barras'],
+    'tamanoPlatina'         => $reg['ma_tam_platina'],
+    'anilloCentrador'       => $reg['ma_anillo_centr'],
+    'alturaMaxMolde'        => $reg['ma_alt_max_molde'],
+    'aperturaMax'           => $reg['ma_apert_max'],
+    'alturaMinMolde'        => $reg['ma_alt_min_molde'],
+    'tipoSujecion'          => $reg['ma_tipo_sujecion'],
+    'moldeChico'            => $reg['ma_molde_chico'],
+    'patronBotado'          => $reg['ma_botado_patron'],
+    'fuerzaBotado'          => $reg['ma_botado_fuerza'],
+    'carreraBotado'         => $reg['ma_botado_carrera'],
+    'tamanoUnidadInyeccion' => $reg['ma_tam_unid_inyec'],
+    'volumenInyeccion'      => $reg['ma_vol_inyec'],
+    'diametroHusillo'       => $reg['ma_diam_husillo'],
+    'cargaMax'              => $reg['ma_carga_max'],
+    'ld'                    => $reg['ma_ld'],
+    'tipoHusillo'           => $reg['ma_tipo_husillo'],
+    'maxPresionInyeccion'   => $reg['ma_max_pres_inyec'],
+    'maxContrapresion'      => $reg['ma_max_contrapres'],
+    'maxRevoluciones'       => $reg['ma_max_revol'],
+    'maxVelocidadInyeccion' => $reg['ma_max_vel_inyec'],
+    'valvulaShutOff'        => $reg['ma_valv_shut_off'],
+    'cargaVuelo'            => $reg['ma_carga_vuelo'],
+    'fuerzaApoyo'           => $reg['ma_fuerza_apoyo'],
+    'noyos'                 => $reg['ma_noyos'],
+    'numValvulasAire'       => $reg['ma_no_valv_aire'],
+    'tipoValvulasAire'      => $reg['ma_tipo_valv_aire'],
+    'secador'               => $reg['ma_secador'],
+    'termoreguladores'      => $reg['ma_termoreguladores'],
+    'cargador'              => $reg['ma_cargador'],
+    'canalCaliente'         => $reg['ma_canal_caliente'],
+    'robot'                 => $reg['ma_robot'],
+    'acumuladorHidraulico'  => $reg['ma_acumul_hidr'],
+    'voltaje'               => $reg['ma_voltaje'],
+    'calentamiento'         => $reg['ma_calentamiento'],
+    'tamanoMotor1'          => $reg['ma_tam_motor_1'],
+    'tamanoMotor2'          => $reg['ma_tam_motor_2'],
+];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -11,7 +76,7 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Formulario de Máquina</title>
+  <title>Editar Máquina</title>
   <link rel="icon" type="image/png" href="/imagenes/loguito.png" />
   <link rel="stylesheet" href="/css/acg.estilos.css" />
 </head>
@@ -23,10 +88,10 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
         src="/imagenes/logo.png"
         alt="Logo ACG"
         class="header-logo" />
-      <h1>Formulario - Máquina</h1>
+      <h1>Editar Máquina</h1>
     </div>
     <div class="header-right">
-        <a href="/registros.php" class="back-button">⬅️ Volver</a>
+        <a href="/lists/list-maquina.php" class="back-button">⬅️ Volver</a>
         <?= burgerBtn() ?>
     </div>
   </header>
@@ -392,93 +457,44 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
           class="btn btn-limpiar" onclick="limpiarFormulario()">🧹 Limpiar
         </button>
         <button type="submit" class="btn sqlbtn">
-          ⬇️ Pasar a Revisar
+          💾 Guardar Cambios
         </button>
       </div>
     </form>
 
-    <h3>Registros Guardados</h3>
-    <div class="form-actions">
-      <button
-        type="button"
-        class="btn btn-excel" onclick="exportarAExcel()">
-        📥 Exportar a Excel
-      </button>
-      <button
-        type="button"
-        class="btn btn-guardar" onclick="guardarTablaMaquinaEnBD()">
-        💾 Guardar tabla en BD
-      </button>
-    </div>
-    <div class="registros-section">
-      <div class="tabla-container-scroll">
-        <table class="tabla-registros" id="tablaRegistros">
-          <thead>
-            <tr>
-              <th>No. Máquina</th>
-              <th>Marca</th>
-              <th>Modelo</th>
-              <th>Fecha Fab.</th>
-              <th>Ubicación</th>
-              <th>Tipo</th>
-              <th>Ancho</th>
-              <th>Largo</th>
-              <th>Alto</th>
-              <th>Peso</th>
-              <th>Tanque Aceite</th>
-              <th>Tonelaje</th>
-              <th>Dist. Barras</th>
-              <th>Platina</th>
-              <th>Anillo</th>
-              <th>Altura Máx</th>
-              <th>Apert. Máx</th>
-              <th>Altura Mín</th>
-              <th>Sujeción</th>
-              <th>Molde Chico</th>
-              <th>Patrón Bot.</th>
-              <th>Fuerza Bot.</th>
-              <th>Carrera Bot.</th>
-              <th>Unidad Iny.</th>
-              <th>Vol. Iny.</th>
-              <th>Diám. Husillo</th>
-              <th>Carga Máx</th>
-              <th>L/D</th>
-              <th>Tipo Husillo</th>
-              <th>Máx Presión</th>
-              <th>Máx Contrap.</th>
-              <th>Máx RPM</th>
-              <th>Máx Vel. Iny.</th>
-              <th>Shut-Off</th>
-              <th>Carga Vuelo</th>
-              <th>Fuerza Apoyo</th>
-              <th>Noyos</th>
-              <th>Núm Válv.</th>
-              <th>Tipo Válv.</th>
-              <th>Secador</th>
-              <th>Termoreg.</th>
-              <th>Cargador</th>
-              <th>Canal Cal.</th>
-              <th>Robot</th>
-              <th>Acum. Hidr.</th>
-              <th>Voltaje</th>
-              <th>Calentam.</th>
-              <th>Motor 1</th>
-              <th>Motor 2</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="cuerpoTabla"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
-  <footer>
-    <p>Método ACG</p>
-  </footer>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
+  // Datos del registro a editar
+  const REGISTRO_ID = <?= $maId ?>;
+  const DATOS_REG   = <?= json_encode($datosReg, JSON_UNESCAPED_UNICODE) ?>;
+
+  // Mapeo campo JS → columna DB para el update
+  const MAPA_DB = {
+    noMaq:'ma_no', marca:'ma_marca', modelo:'ma_modelo', fechaFabricacion:'ma_fecha_fabr',
+    ubicacion:'ma_ubicacion', tipoMaquina:'ma_tipo',
+    dimAncho:'ma_ancho', dimLargo:'ma_largo', dimAlto:'ma_alto',
+    peso:'ma_peso', tamanoTanqueAceite:'ma_vol_tanq_aceite',
+    tonelaje:'ma_tonelaje', distanciaBarras:'ma_dist_barras',
+    tamanoPlatina:'ma_tam_platina', anilloCentrador:'ma_anillo_centr',
+    alturaMaxMolde:'ma_alt_max_molde', aperturaMax:'ma_apert_max',
+    alturaMinMolde:'ma_alt_min_molde', tipoSujecion:'ma_tipo_sujecion',
+    moldeChico:'ma_molde_chico', patronBotado:'ma_botado_patron',
+    fuerzaBotado:'ma_botado_fuerza', carreraBotado:'ma_botado_carrera',
+    tamanoUnidadInyeccion:'ma_tam_unid_inyec', volumenInyeccion:'ma_vol_inyec',
+    diametroHusillo:'ma_diam_husillo', cargaMax:'ma_carga_max',
+    ld:'ma_ld', tipoHusillo:'ma_tipo_husillo',
+    maxPresionInyeccion:'ma_max_pres_inyec', maxContrapresion:'ma_max_contrapres',
+    maxRevoluciones:'ma_max_revol', maxVelocidadInyeccion:'ma_max_vel_inyec',
+    valvulaShutOff:'ma_valv_shut_off', cargaVuelo:'ma_carga_vuelo',
+    fuerzaApoyo:'ma_fuerza_apoyo', noyos:'ma_noyos',
+    numValvulasAire:'ma_no_valv_aire', tipoValvulasAire:'ma_tipo_valv_aire',
+    secador:'ma_secador', termoreguladores:'ma_termoreguladores',
+    cargador:'ma_cargador', canalCaliente:'ma_canal_caliente',
+    robot:'ma_robot', acumuladorHidraulico:'ma_acumul_hidr',
+    voltaje:'ma_voltaje', calentamiento:'ma_calentamiento',
+    tamanoMotor1:'ma_tam_motor_1', tamanoMotor2:'ma_tam_motor_2',
+  };
+
     let registros = [];
     let registroEditando = null;
 
@@ -579,7 +595,7 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 
     document
       .getElementById("formMaquina")
-      .addEventListener("submit", function (e) {
+      .addEventListener("submit", async function (e) {
         e.preventDefault();
         const datos = obtenerDatosFormulario();
 
@@ -588,22 +604,28 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
           return;
         }
 
-        if (registroEditando !== null) {
-          registros[registroEditando] = datos;
-          mostrarMensaje("Registro actualizado correctamente", "exito");
-          registroEditando = null;
-          document.querySelector(".btn-primary").textContent =
-            "Guardar Registro";
-        } else {
-          const _now = new Date();
-          const _pad = n => String(n).padStart(2,'0');
-          datos.fechaGuardado = `${_now.getFullYear()}-${_pad(_now.getMonth()+1)}-${_pad(_now.getDate())}T${_pad(_now.getHours())}:${_pad(_now.getMinutes())}:${_pad(_now.getSeconds())}`;
-          registros.push(datos);
-          mostrarMensaje("Registro guardado correctamente", "exito");
-        }
+        // Construir payload con nombres de columnas DB
+        const payload = { ma_id: REGISTRO_ID };
+        Object.keys(datos).forEach(k => {
+          if (MAPA_DB[k]) payload[MAPA_DB[k]] = datos[k] || null;
+        });
 
-        actualizarTabla();
-        limpiarFormulario();
+        try {
+          const res = await fetch('/actions/update_maquina.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.ok || data.success) {
+            mostrarMensaje("Cambios guardados correctamente", "exito");
+            setTimeout(() => window.close(), 1500);
+          } else {
+            mostrarMensaje(data.error || data.mensaje || "Error al guardar", "error");
+          }
+        } catch(err) {
+          mostrarMensaje("Error de conexión", "error");
+        }
       });
 
     function actualizarTabla() {
@@ -825,6 +847,39 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
             });
         });
     });
+
+    // Prellenar formulario con datos del registro
+    (function precargar() {
+      const d = DATOS_REG;
+      const campos = [
+        "marca","modelo","fechaFabricacion","ubicacion","dimAncho","dimLargo",
+        "dimAlto","peso","tamanoTanqueAceite","tonelaje","distanciaBarras",
+        "tamanoPlatina","anilloCentrador","alturaMaxMolde","aperturaMax",
+        "alturaMinMolde","tamanoUnidadInyeccion","volumenInyeccion",
+        "diametroHusillo","ld","maxPresionInyeccion","maxContrapresion",
+        "maxRevoluciones","maxVelocidadInyeccion","fuerzaApoyo","noyos",
+        "numValvulasAire","secador","termoreguladores","canalCaliente",
+        "robot","voltaje","calentamiento","tamanoMotor1","tamanoMotor2",
+        "patronBotado","fuerzaBotado","carreraBotado","tipoValvulasAire"
+      ];
+      campos.forEach(k => {
+        const el = document.getElementById(k);
+        if (el && d[k] != null) el.value = d[k];
+      });
+      const radios = ["tipoMaquina","tipoSujecion","valvulaShutOff","cargaVuelo","cargador","acumuladorHidraulico"];
+      radios.forEach(name => {
+        if (d[name]) {
+          const r = document.querySelector(`input[name="${name}"][value="${d[name]}"]`);
+          if (r) r.checked = true;
+        }
+      });
+      // Abrir secciones para que los campos sean visibles
+      document.querySelectorAll('.section-header').forEach(h => {
+        h.classList.add('active');
+        const content = h.nextElementSibling;
+        if (content) content.style.maxHeight = content.scrollHeight + 'px';
+      });
+    })();
   </script>
 
 <?php includeSidebar(); ?>

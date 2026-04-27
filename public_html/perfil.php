@@ -3,22 +3,19 @@ require_once __DIR__ . '/../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
+require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 
-$menu_retorno = "/";
-
-switch ($_SESSION['rol']) {
-    case 1:
-        $menu_retorno = "/admin/menu_admin.php";
-        break;
-
-    case 2:
-    case 3:
-        $menu_retorno = "/user/menu_user.php";
-        break;
-
-    default:
-        $menu_retorno = "/index.php";
-}
+$rol = (int)$_SESSION['rol'];
+$menu_retorno  = match($rol) {
+    1 => '/admin/menu_admin.php',
+    2,3 => '/user/menu_user.php',
+    default => '/index.php'
+};
+$menu_principal = match($rol) {
+    1 => '/admin/menu_admin.php',
+    2,3 => '/user/menu_user.php',
+    default => '/index.php'
+};
 
 if (!isset($_SESSION["id"])) {
     header("Location: index.php?error=Debe iniciar sesión");
@@ -81,15 +78,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <header class="header">
         <div class="header-title-group">
-            <a href="<?= $menu_retorno ?>">
-                <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
-            </a>
-            <a href="<?= $menu_retorno ?>">
-                <h1>Mi Perfil</h1>
-            </a>
+            <a href="<?= $menu_principal ?>"><img src="/imagenes/logo.png" alt="Logo" class="header-logo"></a>
+            <h1>Mi Perfil</h1>
         </div>
 
-        <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
+        <div class="header-right">
+            <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
+        <?= burgerBtn() ?>
+    </div>
     </header>
 
     <main class="main-container">
@@ -127,8 +123,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     readonly
                 >
 
-                <button type="submit" id="guardar" class="btn btn-primary" style="display:none;">
-                    Guardar Cambios
+                <button type="submit" id="guardar" class="btn btn-guardar" style="display:none;">
+                    💾 Guardar Cambios
                 </button>
             </form>
 
@@ -171,5 +167,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             });
         });
     </script>
+<?php includeSidebar(); ?>
 </body>
 </html>

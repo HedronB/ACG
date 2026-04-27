@@ -36,10 +36,11 @@ $campos = [
 ];
 
 $sets = implode(', ', array_map(fn($c) => "$c = :$c", $campos));
-$sets .= ', mo_actualizado_en = NOW(), mo_actualizado_por = :mo_actualizado_por';
+$fechaActual = date('Y-m-d H:i:s');
+$sets .= ', mo_actualizado_en = :fecha_actualizado, mo_actualizado_por = :mo_actualizado_por';
 
 $stmt = $conn->prepare("UPDATE moldes SET $sets WHERE mo_id = :mo_id");
-$params = [':mo_id' => $moId, ':mo_actualizado_por' => $usuarioSesion];
+$params = [':mo_id' => $moId, ':mo_actualizado_por' => $usuarioSesion, ':fecha_actualizado' => $fechaActual];
 foreach ($campos as $c) {
     $params[":$c"] = isset($input[$c]) && $input[$c] !== '' ? $input[$c] : null;
 }

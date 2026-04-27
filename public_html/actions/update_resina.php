@@ -32,10 +32,11 @@ $campos = [
 ];
 
 $sets = implode(', ', array_map(fn($c) => "$c = :$c", $campos));
-$sets .= ', re_actualizado_en = NOW(), re_actualizado_por = :re_actualizado_por';
+$fechaActual = date('Y-m-d H:i:s');
+$sets .= ', re_actualizado_en = :fecha_actualizado, re_actualizado_por = :re_actualizado_por';
 
 $stmt = $conn->prepare("UPDATE resinas SET $sets WHERE re_id = :re_id");
-$params = [':re_id' => $reId, ':re_actualizado_por' => $usuarioSesion];
+$params = [':re_id' => $reId, ':re_actualizado_por' => $usuarioSesion, ':fecha_actualizado' => $fechaActual];
 foreach ($campos as $c) {
     $params[":$c"] = isset($input[$c]) && $input[$c] !== '' ? $input[$c] : null;
 }

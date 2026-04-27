@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
+require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 
 $usuarioId = $_SESSION['id'];
 $rol       = $_SESSION['rol'];
@@ -68,24 +69,7 @@ $stmt->execute($params);
 $moldes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $puedeEditarEliminar = ($rol == 1 || $rol == 2);
-$menu_retorno = "/";
-
-switch ($_SESSION['rol']) {
-    case 1:
-        $menu_retorno = "/admin/menu_admin.php";
-        break;
-
-    case 2:
-        $menu_retorno = "/user/menu_user.php";
-        break;
-
-    case 3:
-        $menu_retorno = "/user/menu_user.php";
-        break;
-
-    default:
-        $menu_retorno = "/index.php";
-}
+$menu_retorno = "/menu_info.php";
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -113,7 +97,10 @@ switch ($_SESSION['rol']) {
         </div>
 
         <div>
-            <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
+            <div class="header-right">
+        <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
+        <?= burgerBtn() ?>
+    </div>
         </div>
     </header>
 
@@ -172,8 +159,8 @@ switch ($_SESSION['rol']) {
                 </label>
 
                 <div class="export-buttons">
-                    <button type="button" class="btn-export" id="btnExportCSV">⬇️ Exportar Excel (CSV)</button>
-                    <button type="button" class="btn-export" id="btnExportPDF">⬇️ Exportar PDF</button>
+                    <button type="button" class="btn btn-excel btn-export" id="btnExportCSV">📥 Exportar Excel</button>
+                    <button type="button" class="btn btn-pdf btn-export" id="btnExportPDF">📥 Exportar PDF</button>
                 </div>
             </div>
 
@@ -251,8 +238,8 @@ switch ($_SESSION['rol']) {
                                         <td><?= htmlspecialchars($m['nombre_empresa']) ?></td>
                                         <?php if ($puedeEditarEliminar): ?>
                                             <td>
-                                                <button type="button" class="btn btn-primary btn-edit" style="font-size:0.75em;" data-id="<?= (int)$m['mo_id'] ?>">Editar</button>
-                                                <button type="button" class="btn btn-danger btn-delete" style="font-size:0.75em;" data-id="<?= (int)$m['mo_id'] ?>">Eliminar</button>
+                                                <button type="button" class="btn btn-editar-accion btn-edit" style="font-size:0.75em;" data-id="<?= (int)$m['mo_id'] ?>">✏️ Editar</button>
+                                                <button type="button" class="btn btn-danger btn-delete" style="font-size:0.75em;" data-id="<?= (int)$m['mo_id'] ?>">✖️ Eliminar</button>
                                             </td>
                                         <?php endif; ?>
                                     </tr>
@@ -316,7 +303,7 @@ switch ($_SESSION['rol']) {
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalEditar">Cancelar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalEditar">❌ Cancelar</button>
             <button type="button" class="btn btn-primary" id="btnGuardarEdicion">Guardar cambios</button>
         </div>
     </div>
@@ -332,8 +319,8 @@ switch ($_SESSION['rol']) {
             <p>¿Seguro que deseas eliminar este molde?</p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalEliminar">Cancelar</button>
-            <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalEliminar">❌ Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">✖️ Eliminar</button>
         </div>
     </div>
 </div>
@@ -413,11 +400,7 @@ switch ($_SESSION['rol']) {
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-backdrop.active').forEach(m=>m.classList.remove('active'));body.style.overflow='';}});
     document.querySelectorAll('.btn-edit').forEach(btn=>{
         btn.addEventListener('click',function(){
-            const row=table.querySelector(`tr[data-id="${this.dataset.id}"]`); if(!row) return;
-            let d; try{d=JSON.parse(row.getAttribute('data-molde'));}catch(e){return;}
-            document.getElementById('edit_mo_id').value=d.mo_id||'';
-            CAMPOS.forEach(c=>{const el=document.getElementById('edit_'+c);if(el)el.value=d[c]??'';});
-            oM('modalEditar');
+            window.open('/forms/editar-molde.php?id=' + this.dataset.id, '_blank');
         });
     });
     document.getElementById('btnGuardarEdicion').addEventListener('click',function(){
@@ -439,5 +422,6 @@ switch ($_SESSION['rol']) {
     <?php endif; ?>
 })();
 </script>
+<?php includeSidebar(); ?>
 </body>
 </html>

@@ -32,13 +32,13 @@ try {
     $sql = "INSERT INTO piezas (
                 pi_usuario, pi_empresa, pi_planta, pi_fecha,
                 pi_cod_prod, pi_molde, pi_descripcion, pi_resina,
-                pi_espesor, pi_area_proy, pi_color, pi_tipo_empaque,
+                pi_espesor, pi_area_proy, pi_color, pi_porc_molido, pi_tipo_empaque,
                 pi_piezas, pi_caja_no_pzs, pi_caja_tamano,
                 pi_bolsa1, pi_bolsa2, pi_tarima_no_cajas
             ) VALUES (
                 :pi_usuario, :pi_empresa, :pi_planta, :pi_fecha,
                 :pi_cod_prod, :pi_molde, :pi_descripcion, :pi_resina,
-                :pi_espesor, :pi_area_proy, :pi_color, :pi_tipo_empaque,
+                :pi_espesor, :pi_area_proy, :pi_color, :pi_porc_molido, :pi_tipo_empaque,
                 :pi_piezas, :pi_caja_no_pzs, :pi_caja_tamano,
                 :pi_bolsa1, :pi_bolsa2, :pi_tarima_no_cajas
             )";
@@ -65,6 +65,7 @@ try {
             ':pi_espesor'         => $r['espesorPieza'] ?? null,
             ':pi_area_proy'       => $r['areaProyectada'] ?? null,
             ':pi_color'           => $r['color'] ?? null,
+            ':pi_porc_molido'     => isset($r['porcMolido']) && $r['porcMolido'] !== '' ? $r['porcMolido'] : null,
             ':pi_tipo_empaque'    => $r['tipoEmpaque'] ?? null,
             ':pi_piezas'          => $r['piezas'] ?? null,
             ':pi_caja_no_pzs'     => $r['piezasPorCaja'] ?? null,

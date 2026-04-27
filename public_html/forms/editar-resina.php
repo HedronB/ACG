@@ -1,9 +1,47 @@
 <?php
 require_once __DIR__ . '/../../app/bootstrap.php';
-
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
 require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
+
+$reId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if (!$reId) { header('Location: /lists/list-resina.php'); exit(); }
+
+$usuarioSesion = (int)$_SESSION['id'];
+$empresaSesion = (int)$_SESSION['empresa'];
+$rol           = (int)$_SESSION['rol'];
+
+$stmt = $conn->prepare("SELECT * FROM resinas WHERE re_id = ? AND re_activo = 1");
+$stmt->execute([$reId]);
+$reg = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$reg) { header('Location: /lists/list-resina.php?error=no_encontrado'); exit(); }
+if ($rol === 2 && (int)$reg['re_empresa'] !== $empresaSesion) { header('Location: /lists/list-resina.php?error=sin_permiso'); exit(); }
+if ($rol === 3 && (int)$reg['re_usuario'] !== $usuarioSesion)  { header('Location: /lists/list-resina.php?error=sin_permiso'); exit(); }
+
+$datosReg = [
+    'codigoInterno'        => $reg['re_cod_int'],
+    'tipoResina'           => $reg['re_tipo_resina'],
+    'grado'                => $reg['re_grado'],
+    'porcentajeReciclado'  => $reg['re_porc_reciclado'],
+    'tempMasaMax'          => $reg['re_temp_masa_max'],
+    'tempMasaMin'          => $reg['re_temp_masa_min'],
+    'tempRefrigeracionMax' => $reg['re_temp_ref_max'],
+    'tempRefrigeracionMin' => $reg['re_temp_ref_min'],
+    'tempSecado'           => $reg['re_sec_temp'],
+    'tiempoSecado'         => $reg['re_sec_tiempo'],
+    'densidad'             => $reg['re_densidad'],
+    'factorCorreccion'     => $reg['re_factor_correccion'],
+    'carga'                => $reg['re_carga'],
+];
+
+$mapaDB = [
+    'codigoInterno'=>'re_cod_int','tipoResina'=>'re_tipo_resina','grado'=>'re_grado',
+    'porcentajeReciclado'=>'re_porc_reciclado','tempMasaMax'=>'re_temp_masa_max',
+    'tempMasaMin'=>'re_temp_masa_min','tempRefrigeracionMax'=>'re_temp_ref_max',
+    'tempRefrigeracionMin'=>'re_temp_ref_min','tempSecado'=>'re_sec_temp',
+    'tiempoSecado'=>'re_sec_tiempo','densidad'=>'re_densidad',
+    'factorCorreccion'=>'re_factor_correccion','carga'=>'re_carga',
+];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -11,7 +49,7 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Formulario de Resina</title>
+  <title>Editar Resina</title>
   <link rel="icon" type="image/png" href="/imagenes/loguito.png" />
   <link rel="stylesheet" href="/css/acg.estilos.css" />
 </head>
@@ -23,10 +61,10 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
         src="/imagenes/logo.png"
         alt="Logo ACG"
         class="header-logo" />
-      <h1>Formulario - Resina</h1>
+      <h1>Editar Resina</h1>
     </div>
     <div class="header-right">
-        <a href="/registros.php" class="back-button">⬅️ Volver</a>
+        <a href="/lists/list-resina.php" class="back-button">⬅️ Volver</a>
         <?= burgerBtn() ?>
     </div>
   </header>
@@ -148,56 +186,17 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
           class="btn btn-limpiar" onclick="limpiarFormulario()">🧹 Limpiar
         </button>
         <button type="submit" class="btn sqlbtn">
-          ⬇️ Pasar a Revisar
+          💾 Guardar Cambios
         </button>
       </div>
     </form>
 
-    <h3>Registros Guardados</h3>
-    <div class="form-actions">
-      <button
-        type="button"
-        class="btn btn-excel" onclick="exportarAExcel()">
-        📥 Exportar a Excel
-      </button>
 
-      <button
-        type="button"
-        class="btn btn-guardar" onclick="guardarTablaResinaEnBD()">
-        💾 Guardar tabla en BD
-      </button>
-    </div>
-    <div class="registros-section">
-      <table class="tabla-registros" id="tablaRegistros">
-        <thead>
-          <tr>
-            <th>Código Interno</th>
-            <th>Tipo Resina</th>
-            <th>Grado</th>
-            <th>% Reciclado</th>
-            <th>Temp. Masa Máx</th>
-            <th>Temp. Masa Mín</th>
-            <th>Temp. Refrig. Máx</th>
-            <th>Temp. Refrig. Mín</th>
-            <th>Temp. Secado</th>
-            <th>Tiempo Secado</th>
-            <th>Densidad</th>
-            <th>Factor Corrección</th>
-            <th>Carga (%)</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <footer>
-    <p>Método ACG</p>
-  </footer>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
+  const REGISTRO_ID = <?= $reId ?>;
+  const DATOS_REG   = <?= json_encode($datosReg, JSON_UNESCAPED_UNICODE) ?>;
+  const MAPA_DB     = <?= json_encode($mapaDB) ?>;
+
     let registros = [];
     let registroEditando = null;
 
@@ -249,31 +248,25 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 
     document
       .getElementById("formResina")
-      .addEventListener("submit", function(e) {
+      .addEventListener("submit", async function(e) {
         e.preventDefault();
-
         const datos = obtenerDatosFormulario();
-
         if (!datos.codigoInterno || !datos.tipoResina) {
-          mostrarMensaje("Código interno y tipo de resina son obligatorios", "error");
-          return;
+          mostrarMensaje("Código interno y tipo de resina son obligatorios", "error"); return;
         }
-
-        if (registroEditando !== null) {
-          registros[registroEditando] = datos;
-          mostrarMensaje("Registro actualizado en la tabla", "exito");
-          registroEditando = null;
-          document.querySelector(".btn-primary").textContent = "Guardar Registro";
-        } else {
-          const _now = new Date();
-          const _pad = n => String(n).padStart(2,'0');
-          datos.fechaGuardado = `${_now.getFullYear()}-${_pad(_now.getMonth()+1)}-${_pad(_now.getDate())}T${_pad(_now.getHours())}:${_pad(_now.getMinutes())}:${_pad(_now.getSeconds())}`;
-          registros.push(datos);
-          mostrarMensaje("Registro agregado a la tabla", "exito");
-        }
-
-        actualizarTabla();
-        limpiarFormulario();
+        const payload = { re_id: REGISTRO_ID };
+        Object.keys(datos).forEach(k => { if (MAPA_DB[k]) payload[MAPA_DB[k]] = datos[k] || null; });
+        try {
+          const res = await fetch('/actions/update_resina.php', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.ok || data.success) {
+            mostrarMensaje("Cambios guardados correctamente", "exito");
+            setTimeout(() => window.close(), 1500);
+          } else { mostrarMensaje(data.error || data.mensaje || "Error al guardar", "error"); }
+        } catch(err) { mostrarMensaje("Error de conexión", "error"); }
       });
 
 
@@ -383,6 +376,23 @@ require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
           mostrarMensaje("Error de comunicación con el servidor", "error");
         });
     }
+    // Prellenar
+    (function precargar() {
+      const d = DATOS_REG;
+      const campos = ["codigoInterno","tipoResina","grado","porcentajeReciclado",
+        "tempMasaMax","tempMasaMin","tempRefrigeracionMax","tempRefrigeracionMin",
+        "tempSecado","tiempoSecado","densidad","factorCorreccion","carga"];
+      campos.forEach(k => { const el=document.getElementById(k); if(el&&d[k]!=null) el.value=d[k]; });
+
+      // Abrir secciones para que los campos sean visibles
+      document.querySelectorAll('.section-header').forEach(h => {
+        h.classList.add('active');
+        const content = h.nextElementSibling;
+        if (content && content.classList.contains('section-content')) {
+          content.style.maxHeight = content.scrollHeight + 'px';
+        }
+      });
+    })();
   </script>
 <?php includeSidebar(); ?>
 </body>

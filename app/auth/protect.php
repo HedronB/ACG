@@ -15,11 +15,8 @@ $roles_permitidos = [
     'sign.php' => [0,1,2,3],
 
     'menu_admin.php' => [1],
-    'menu_info_admin.php' => [1],
-    'manage_users.php' => [1],
 
     'menu_user.php' => [2,3],
-    'menu_info_user.php' => [2,3],
 
     'perfil.php' => [1,2,3],
     'registros.php' => [1,2,3],
@@ -28,6 +25,19 @@ $roles_permitidos = [
     'form-molde.php' => [1,2,3],
     'form-pieza.php' => [1,2,3],
     'form-resina.php' => [1,2,3],
+
+    'editar-maquina.php' => [1,2,3],
+    'editar-molde.php' => [1,2,3],
+    'editar-pieza.php' => [1,2,3],
+    'editar-resina.php' => [1,2,3],
+
+    'form-hojaProceso.php' => [1,2,3],
+    'form-hojaResultado.php' => [1,2,3],
+    'registros-cambios.php' => [1,2,3],
+    'menu-reportes.php' => [1,2,3],
+    'menu_info.php' => [1,2,3],
+    'hoja-proceso.php' => [1,2,3],
+    'hoja-resultado.php' => [1,2,3],
 
     'list-maquina.php' => [1,2,3],
     'list-molde.php' => [1,2,3],
@@ -56,6 +66,24 @@ $roles_permitidos = [
     'create_planta.php'  => [1],
     'update_planta.php'  => [1],
     'delete_planta.php'  => [1],
+
+    // Batch 6 — nuevas páginas
+    'manage_users.php'        => [1, 2],
+    'catalogos.php'           => [1, 2, 3],
+    'nuevo-proceso.php'       => [1, 2, 3],
+    'seleccionar-maquina.php' => [1, 2, 3],
+    'logo-empresa.php'        => [1, 2],
+    'calificador.php'         => [1, 2, 3],
+    'api-maquinas.php'        => [1, 2, 3],
+    'guardar_eyc.php'         => [1, 2, 3],
+    'guardar_reometria.php'   => [1, 2, 3],
+    'guardar_calificador.php' => [1, 2, 3],
+    'delete_hoja.php'         => [1, 2, 3],
+    'calificador-proceso.php' => [1, 2, 3],
+    'guardar_proceso.php'     => [1, 2, 3],
+    'proceso-nuevo.php'       => [1, 2, 3],
+    'proceso-ver.php'         => [1, 2, 3],
+    'procesos.php'            => [1, 2, 3],
 ];
 
 

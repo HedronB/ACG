@@ -32,7 +32,7 @@ try {
 
     $sql = "INSERT INTO maquinas (
         ma_usuario, ma_empresa, ma_planta, ma_fecha,
-        ma_marca, ma_modelo, ma_fecha_fabr, ma_ubicacion, ma_tipo,
+        ma_no, ma_marca, ma_modelo, ma_fecha_fabr, ma_ubicacion, ma_tipo,
         ma_ancho, ma_largo, ma_alto, ma_peso, ma_vol_tanq_aceite,
         ma_tonelaje, ma_dist_barras, ma_tam_platina, ma_anillo_centr,
         ma_alt_max_molde, ma_apert_max, ma_alt_min_molde, ma_tipo_sujecion,
@@ -46,7 +46,7 @@ try {
         ma_tam_motor_1, ma_tam_motor_2
     ) VALUES (
         :ma_usuario, :ma_empresa, :ma_planta, :ma_fecha,
-        :ma_marca, :ma_modelo, :ma_fecha_fabr, :ma_ubicacion, :ma_tipo,
+        :ma_no, :ma_marca, :ma_modelo, :ma_fecha_fabr, :ma_ubicacion, :ma_tipo,
         :ma_ancho, :ma_largo, :ma_alto, :ma_peso, :ma_vol_tanq_aceite,
         :ma_tonelaje, :ma_dist_barras, :ma_tam_platina, :ma_anillo_centr,
         :ma_alt_max_molde, :ma_apert_max, :ma_alt_min_molde, :ma_tipo_sujecion,
@@ -71,6 +71,7 @@ try {
             ':ma_empresa' => $empresa,
             ':ma_planta'  => $planta,
             ':ma_fecha'   => $fecha,
+            ':ma_no'               => $r['noMaq'] ?? null,
             ':ma_marca'             => $r['marca'] ?? null,
             ':ma_modelo'            => $r['modelo'] ?? null,
             ':ma_fecha_fabr'        => $r['fechaFabricacion'] ?? null,

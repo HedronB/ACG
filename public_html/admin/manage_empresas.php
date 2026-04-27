@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../app/bootstrap.php';
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
+require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 
 // Cargar empresas con sus plantas
 $empresas = $conn->query("
@@ -34,16 +35,16 @@ $plantas = $conn->query("
 <body>
 
 <header class="header">
-    <div class="header-title-group">
-        <a href="/admin/menu_admin.php">
-            <img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo">
-        </a>
+    <div class="header-title-group"><a href="/admin/menu_admin.php"><img src="/imagenes/logo.png" alt="Logo ACG" class="header-logo"></a>
         <h1>Empresas y Plantas</h1>
     </div>
     <div class="header-actions">
         <button type="button" class="btn btn-primary" id="btnNuevaEmpresa">+ Nueva empresa</button>
         <button type="button" class="btn btn-secondary" id="btnNuevaPlanta">+ Nueva planta</button>
+        <div class="header-right">
         <a href="/admin/menu_admin.php" class="back-button">⬅️ Volver</a>
+        <?= burgerBtn() ?>
+    </div>
     </div>
 </header>
 
@@ -142,8 +143,8 @@ $plantas = $conn->query("
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalEmpresa">Cancelar</button>
-            <button type="button" class="btn btn-primary" id="btnGuardarEmpresa">Guardar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalEmpresa">❌ Cancelar</button>
+            <button type="button" class="btn btn-guardar" id="btnGuardarEmpresa">💾 Guardar</button>
         </div>
     </div>
 </div>
@@ -160,8 +161,8 @@ $plantas = $conn->query("
             <p id="msgEliminarEmpresa">¿Seguro que deseas eliminar esta empresa?</p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalEliminarEmpresa">Cancelar</button>
-            <button type="button" class="btn btn-danger" id="btnConfirmarEliminarEmpresa">Eliminar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalEliminarEmpresa">❌ Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminarEmpresa">✖️ Eliminar</button>
         </div>
     </div>
 </div>
@@ -190,8 +191,8 @@ $plantas = $conn->query("
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalPlanta">Cancelar</button>
-            <button type="button" class="btn btn-primary" id="btnGuardarPlanta">Guardar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalPlanta">❌ Cancelar</button>
+            <button type="button" class="btn btn-guardar" id="btnGuardarPlanta">💾 Guardar</button>
         </div>
     </div>
 </div>
@@ -208,8 +209,8 @@ $plantas = $conn->query("
             <p>¿Seguro que deseas eliminar esta planta?</p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalEliminarPlanta">Cancelar</button>
-            <button type="button" class="btn btn-danger" id="btnConfirmarEliminarPlanta">Eliminar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalEliminarPlanta">❌ Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminarPlanta">✖️ Eliminar</button>
         </div>
     </div>
 </div>
@@ -370,5 +371,6 @@ $plantas = $conn->query("
 })();
 </script>
 
+<?php includeSidebar(); ?>
 </body>
 </html>

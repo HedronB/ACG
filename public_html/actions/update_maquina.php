@@ -39,7 +39,7 @@ if ($rol !== 1) {
 }
 
 $campos = [
-    'ma_marca','ma_modelo','ma_fecha_fabr','ma_ubicacion','ma_tipo',
+    'ma_no','ma_marca','ma_modelo','ma_fecha_fabr','ma_ubicacion','ma_tipo',
     'ma_ancho','ma_largo','ma_alto','ma_peso','ma_vol_tanq_aceite',
     'ma_tonelaje','ma_dist_barras','ma_tam_platina','ma_anillo_centr',
     'ma_alt_max_molde','ma_apert_max','ma_alt_min_molde','ma_tipo_sujecion',
@@ -54,12 +54,13 @@ $campos = [
 ];
 
 $sets = implode(', ', array_map(fn($c) => "$c = :$c", $campos));
-$sets .= ', ma_actualizado_en = NOW(), ma_actualizado_por = :ma_actualizado_por';
+$fechaActual = date('Y-m-d H:i:s');
+$sets .= ', ma_actualizado_en = :fecha_actualizado, ma_actualizado_por = :ma_actualizado_por';
 
 $sql = "UPDATE maquinas SET $sets WHERE ma_id = :ma_id";
 $stmt = $conn->prepare($sql);
 
-$params = [':ma_id' => $maId, ':ma_actualizado_por' => $usuarioSesion];
+$params = [':ma_id' => $maId, ':ma_actualizado_por' => $usuarioSesion, ':fecha_actualizado' => $fechaActual];
 foreach ($campos as $c) {
     $params[":$c"] = isset($input[$c]) && $input[$c] !== '' ? $input[$c] : null;
 }

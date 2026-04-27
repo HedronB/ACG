@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 
 require_once BASE_PATH . '/app/auth/protect.php';
 require_once BASE_PATH . '/app/config/db.php';
+require_once BASE_PATH . '/app/helpers/LayoutHelper.php';
 
 $usuarioId = $_SESSION['id'];
 $rol       = $_SESSION['rol'];
@@ -13,6 +14,7 @@ $sql = "SELECT
             m.ma_usuario,
             m.ma_empresa,
             m.ma_fecha,
+            m.ma_no,
             m.ma_marca,
             m.ma_modelo,
             m.ma_fecha_fabr,
@@ -93,24 +95,7 @@ $stmt->execute($params);
 $maquinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $puedeEditarEliminar = ($rol == 1 || $rol == 2);
-$menu_retorno = "/";
-
-switch ($_SESSION['rol']) {
-    case 1:
-        $menu_retorno = "/admin/menu_admin.php";
-        break;
-
-    case 2:
-        $menu_retorno = "/user/menu_user.php";
-        break;
-
-    case 3:
-        $menu_retorno = "/user/menu_user.php";
-        break;
-
-    default:
-        $menu_retorno = "/index.php";
-}
+$menu_retorno = "/menu_info.php";
 
 ?>
 <!DOCTYPE html>
@@ -140,7 +125,10 @@ switch ($_SESSION['rol']) {
 
     <div>
         <!-- <a href="form-maquina.php" class="back-button">➕ Nueva máquina</a> -->
+        <div class="header-right">
         <a href="<?= $menu_retorno ?>" class="back-button">⬅️ Volver</a>
+        <?= burgerBtn() ?>
+    </div>
     </div>
 </header>
 
@@ -222,8 +210,8 @@ switch ($_SESSION['rol']) {
             </label>
 
             <div class="export-buttons">
-                <button type="button" class="btn-export" id="btnExportCSV">⬇️ Exportar Excel (CSV)</button>
-                <button type="button" class="btn-export" id="btnExportPDF">⬇️ Exportar PDF</button>
+                <button type="button" class="btn btn-excel btn-export" id="btnExportCSV">📥 Exportar Excel</button>
+                <button type="button" class="btn btn-pdf btn-export" id="btnExportPDF">📥 Exportar PDF</button>
             </div>
         </div>
 
@@ -235,6 +223,7 @@ switch ($_SESSION['rol']) {
                     <table class="tabla-registros" id="tablaMaquinas">
                         <thead>
                         <tr>
+                            <th>No. Máquina</th>
                             <th>Fecha</th>
                             <th>Marca</th>
                             <th>Modelo</th>
@@ -297,6 +286,7 @@ switch ($_SESSION['rol']) {
                                 data-id="<?= (int)$m['ma_id'] ?>"
                                 data-maquina='<?= json_encode($m, JSON_HEX_APOS | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT) ?>'
                             >
+                                <td><?= htmlspecialchars($m['ma_no'] ?? '') ?></td>
                                 <td><?= htmlspecialchars($m['ma_fecha']) ?></td>
                                 <td><?= htmlspecialchars($m['ma_marca']) ?></td>
                                 <td><?= htmlspecialchars($m['ma_modelo']) ?></td>
@@ -351,16 +341,16 @@ switch ($_SESSION['rol']) {
                                 <?php if ($puedeEditarEliminar): ?>
                                     <td>
                                         <button type="button"
-                                                class="btn btn-primary btn-edit"
+                                                class="btn btn-editar-accion btn-edit"
                                                 style="font-size:0.75em;"
                                                 data-id="<?= (int)$m['ma_id'] ?>">
-                                            Editar
+                                            ✏️ Editar
                                         </button>
                                         <button type="button"
                                                 class="btn btn-danger btn-delete"
                                                 style="font-size:0.75em;"
                                                 data-id="<?= (int)$m['ma_id'] ?>">
-                                            Eliminar
+                                            ✖️ Eliminar
                                         </button>
                                     </td>
                                 <?php endif; ?>
@@ -455,7 +445,7 @@ switch ($_SESSION['rol']) {
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalEditar">Cancelar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalEditar">❌ Cancelar</button>
             <button type="button" class="btn btn-primary" id="btnGuardarEdicion">Guardar cambios</button>
         </div>
     </div>
@@ -473,8 +463,8 @@ switch ($_SESSION['rol']) {
             <p>¿Seguro que deseas eliminar esta máquina? La acción no se puede deshacer.</p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="back-button" data-close="modalEliminar">Cancelar</button>
-            <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+            <button type="button" class="btn btn-cancelar" data-close="modalEliminar">❌ Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">✖️ Eliminar</button>
         </div>
     </div>
 </div>
@@ -675,7 +665,7 @@ switch ($_SESSION['rol']) {
 
     // ── Mapeo de campos del modal ───────────────────────────
     const CAMPOS = [
-        'ma_marca','ma_modelo','ma_fecha_fabr','ma_ubicacion','ma_tipo',
+        'ma_no','ma_marca','ma_modelo','ma_fecha_fabr','ma_ubicacion','ma_tipo',
         'ma_ancho','ma_largo','ma_alto','ma_peso','ma_vol_tanq_aceite',
         'ma_tonelaje','ma_dist_barras','ma_tam_platina','ma_anillo_centr',
         'ma_alt_max_molde','ma_apert_max','ma_alt_min_molde','ma_tipo_sujecion',
@@ -692,25 +682,7 @@ switch ($_SESSION['rol']) {
     // Editar
     document.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', function () {
-            const row = table.querySelector(`tr[data-id="${this.dataset.id}"]`);
-            if (!row) return;
-            let data;
-            try { data = JSON.parse(row.getAttribute('data-maquina')); } catch(e) { return; }
-
-            document.getElementById('edit_ma_id').value = data.ma_id || '';
-            CAMPOS.forEach(campo => {
-                const el = document.getElementById('edit_' + campo);
-                if (!el) return;
-                let val = data[campo] ?? '';
-                if (el.tagName === 'SELECT') {
-                    el.value = val;
-                } else if (el.type === 'date' && val) {
-                    el.value = val.slice(0, 10);
-                } else {
-                    el.value = val;
-                }
-            });
-            openModal('modalEditar');
+            window.open('/forms/editar-maquina.php?id=' + this.dataset.id, '_blank');
         });
     });
 
@@ -764,5 +736,6 @@ switch ($_SESSION['rol']) {
     <?php endif; ?>
 })();
 </script>
+<?php includeSidebar(); ?>
 </body>
 </html>
